@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN"
+        "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+
+	<!-- www相关 -->
+	<package name="service" namespace="/service" extends="default">
+		<!-- 根据imsi查询号码 -->
+		<action name="queryPhoneByIMSI" method="queryPhoneByIMSI" class="com.tenfen.www.action.services.MDNIMSIRelationAction"></action>
+		
+		<!-- 获取推送包月 -->
+		<!--  
+		<action name="packageList" method="packageList" class="com.tenfen.www.action.services.PushPackageAction"></action>
+		-->
+		<!-- 包月用户状态入库 -->
+		<!--
+		<action name="updateUser" method="updateUser" class="com.tenfen.www.action.services.PushPackageAction"></action>
+		-->
+		<!-- 根据号码查地域 -->
+		<!--
+		<action name="searchAreaByPhone" method="searchAreaByPhone" class="com.tenfen.www.action.services.PushPackageAction"></action>
+		-->
+		<!-- 检查3个月内是否包月 -->
+		<!--  
+		<action name="checkBaoyue" method="checkBaoyue" class="com.tenfen.www.action.services.PushPackageAction"></action>
+		-->
+		<action name="pushPackage_*" method="{1}" class="com.tenfen.www.action.services.PushPackageAction"></action>
+		
+		<!-- 查询系统配置，是否跳过验证码 -->
+		<action name="isjump" method="isjump" class="com.tenfen.www.action.services.SystemAction"></action>
+		
+		<!-- 访问日志 -->
+		<action name="visitlog" method="visitlog" class="com.tenfen.www.action.services.SystemAction"></action>
+		
+		<!-- 检查是否黑名单用户 -->
+		<action name="checkPhoneIsBlack" method="checkPhoneIsBlack" class="com.tenfen.www.action.services.SystemAction"></action>
+		
+		<!-- 短信包月推送 -->
+		<!--  
+		<action name="pushSmsPackage_*" method="{1}" class="com.tenfen.www.action.services.PushSmsPackageAction"></action>
+		-->
+	</package>
+
+</struts>

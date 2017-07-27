@@ -1,0 +1,203 @@
+/* 公共样式 */
+
+.loading16{width : 16px;height : 16px;background-image: url(img/loading16.gif);margin:0px auto;}
+.loadingres {width : 120px;height : 120px;background-image: url(img/loading1.gif);margin:0px auto;display:none;position:absolute;opacity:1;}
+.contentbody {background: url("img/welcom.png") no-repeat scroll right bottom 0 #FFFFFF !important; }
+.tablecls { border-top : 1px solid #d9d9d9;}
+.tablecls th { background-color: #F9F9F9;}
+.tablecls td,.tablecls th {
+	border-top : none;
+	border-left:none;
+	border-right:1px solid #d9d9d9;
+	border-bottom: 1px solid #d9d9d9;
+	padding:2px 3px 2px 3px;
+}
+.none-border th,.none-border tr,.none-border td {border:none;padding:0px 2px;}
+.row-deleteline {text-decoration:line-through;color: #cf4c35;}
+.videocoverview {overflow:hidden;float:left;margin:0 10px 0 0;border-style: solid;border-width: 1px;border-color: #C0C0C0 #D9D9D9 #D9D9D9;}
+
+
+/*The first line icons*/
+.icon-add { background: url("img/icons.png") no-repeat -2px -2px !important; }
+.icon-delete { background: url("img/icons.png") no-repeat -22px -2px !important; }
+.icon-accept { background: url("img/icons.png") no-repeat -42px -2px !important; }
+.icon-no { background: url("img/icons.png") no-repeat -62px -2px !important; }
+.icon-view { background: url("img/icons.png") no-repeat -82px -2px !important; }
+.icon-bogus { background: url("img/icons.png") no-repeat -102px -2px !important; }
+.icon-grid { background: url("img/icons.png") no-repeat -122px -2px !important; }
+.icon-edit { background: url("img/icons.png") no-repeat -142px -2px !important; }
+.icon-edittask { background: url("img/icons.png") no-repeat -162px -2px !important; }
+.icon-set {background: url("img/icons.png") no-repeat -182px -2px !important;}
+.icon-setedit {background: url("img/icons.png") no-repeat -202px -2px !important;}
+.icon-cut {background: url("img/icons.png") no-repeat -222px -2px !important;}
+.icon-timeedit {background: url("img/icons.png") no-repeat -242px -2px !important;}
+.icon-paste {background: url("img/icons.png") no-repeat -262px -2px !important;}
+.icon-label {background: url("img/icons.png") no-repeat -282px -2px !important;}
+.icon-orderdesc{background: url("img/icons.png") no-repeat -302px -2px !important;}
+.icon-orderasc{background: url("img/icons.png") no-repeat -322px -2px !important;}
+.icon-clock{background: url("img/icons.png") no-repeat -342px -2px !important;}
+
+/*The second line icons*/
+.icon-saved { background: url("img/icons.png") no-repeat -2px -22px !important; }
+.icon-delcross { background: url("img/icons.png") no-repeat -22px -22px !important; }
+.icon-errorinfo { background: url("img/icons.png") no-repeat -42px -22px !important; }
+.icon-info { background: url("img/icons.png") no-repeat -62px -22px !important; }
+.icon-foldergo { background: url("img/icons.png") no-repeat -82px -22px !important; }
+.icon-folderset { background: url("img/icons.png") no-repeat -102px -22px !important; }
+.icon-reset { background: url("img/icons.png") no-repeat -122px -22px !important; }
+.icon-search { background: url("img/icons.png") no-repeat -142px -22px !important; }
+.icon-save { background: url("img/icons.png") no-repeat -162px -22px !important; }
+.icon-trash { background: url("img/icons.png") no-repeat -182px -22px !important; }
+.icon-up { background: url("img/icons.png") no-repeat -202px -22px !important; }
+.icon-down { background: url("img/icons.png") no-repeat -222px -22px !important; }
+.icon-audit { background: url("img/icons.png") no-repeat -242px -22px !important; }
+.icon-app { background: url("img/icons.png") no-repeat -262px -22px !important; }
+.icon-totop { background: url("img/icons.png") no-repeat -282px -22px !important; }
+.icon-logout { background: url("img/icons.png") no-repeat -302px -22px !important; }
+.icon-login { background: url("img/icons.png") no-repeat -322px -22px !important; }
+.icon-home { background: url("img/icons.png") no-repeat -342px -22px !important; }
+
+/*The third line icons*/
+.icon-book { background: url("img/icons.png") no-repeat -2px -42px !important; }
+.icon-appgo { background: url("img/icons.png") no-repeat -22px -42px !important; }
+.icon-switch { background: url("img/icons.png") no-repeat -42px -42px !important; }
+.icon-arrowleft { background: url("img/icons.png") no-repeat -62px -42px !important; }
+.icon-arrowright { background: url("img/icons.png") no-repeat -82px -42px !important; }
+.icon-lock { background: url("img/icons.png") no-repeat -102px -42px !important; }
+.icon-unlock { background: url("img/icons.png") no-repeat -122px -42px !important; }
+.icon-key { background: url("img/icons.png") no-repeat -142px -42px !important; }
+.icon-warning { background: url("img/icons.png") no-repeat -162px -42px !important; }
+.icon-user { background: url("img/icons.png") no-repeat -182px -42px !important; }
+.icon-userfemale { background: url("img/icons.png") no-repeat -202px -42px !important; }
+.icon-usergreen { background: url("img/icons.png") no-repeat -222px -42px !important; }
+.icon-userorange { background: url("img/icons.png") no-repeat -242px -42px !important; }
+.icon-usergroup { background: url("img/icons.png") no-repeat -262px -42px !important; }
+.icon-online { background: url("img/icons.png") no-repeat -282px -42px !important; }
+.icon-offline { background: url("img/icons.png") no-repeat -302px -42px !important; }
+.icon-video {background: url("img/icons.png") no-repeat -322px -42px !important;}
+.icon-newspaper {background: url("img/icons.png") no-repeat -342px -42px !important;}
+
+/*The fourth line icons*/
+.icon-pageattach { background: url("img/icons.png") no-repeat -2px -62px !important; }
+.icon-template { background: url("img/icons.png") no-repeat -22px -62px !important; }
+.icon-tablerefresh { background: url("img/icons.png") no-repeat -42px -62px !important; }
+.icon-showall { background: url("img/icons.png") no-repeat -62px -62px !important; }
+.icon-showactive { background: url("img/icons.png") no-repeat -82px -62px !important; }
+.icon-showdone { background: url("img/icons.png") no-repeat -102px -62px !important; }
+.icon-textlist { background: url("img/icons.png") no-repeat -122px -62px !important; }
+.icon-pagefirst { background: url("img/icons.png") no-repeat -142px -62px !important; }
+.icon-pagelast { background: url("img/icons.png") no-repeat -162px -62px !important; }
+.icon-pageprev { background: url("img/icons.png") no-repeat -182px -62px !important; }
+.icon-pagenext { background: url("img/icons.png") no-repeat -202px -62px !important; }
+.icon-cellphone {background: url("img/icons.png") no-repeat -222px -62px !important;}
+.icon-download {background: url("img/icons.png") no-repeat -242px -62px !important;}
+.icon-import {background: url("img/icons.png") no-repeat -262px -62px !important;}
+.icon-stop {background: url("img/icons.png") no-repeat -282px -62px !important;}
+.icon-refresh {background: url("img/icons.png") no-repeat -302px -62px !important;}
+.icon-books {background: url("img/icons.png") no-repeat -322px -62px !important;}
+.icon-bag {background: url("img/icons.png") no-repeat -342px -62px !important;}
+
+/*The fifth line icons*/
+.icon-sclass {background: url("img/icons.png") no-repeat -2px -82px !important;}
+.icon-school {background: url("img/icons.png") no-repeat -22px -82px !important;}
+.icon-tools {background: url("img/icons.png") no-repeat -42px -82px !important;}
+.icon-tool1 {background: url("img/icons.png") no-repeat -62px -82px !important;}
+.icon-tool2 {background: url("img/icons.png") no-repeat -82px -82px !important;}
+.icon-sqljoin {background: url("img/icons.png") no-repeat -102px -82px !important;}
+.icon-sql {background: url("img/icons.png") no-repeat -122px -82px !important;}
+.icon-favourite {background: url("img/icons.png") no-repeat -142px -82px !important;}
+.icon-comment {background: url("img/icons.png") no-repeat -162px -82px !important;}
+.icon-report {background: url("img/icons.png") no-repeat -182px -82px !important;}
+
+/*tree icons*/
+.tree-icon-bogus { background: url("img/icons.png") no-repeat -102px 2px !important; }
+.tree-icon-set {background: url("img/icons.png") no-repeat -182px 2px !important;}
+.tree-icon-setedit {background: url("img/icons.png") no-repeat -202px 2px !important;}
+.tree-icon-user {background: url("img/icons.png") no-repeat -182px -38px !important;}
+.tree-icon-userfemale { background: url("img/icons.png") no-repeat -202px -38px !important; }
+.tree-icon-usergroup { background: url("img/icons.png") no-repeat -262px -38px !important; }
+.tree-icon-userorange { background: url("img/icons.png") no-repeat -242px -38px !important; }
+.tree-icon-audit { background: url("img/icons.png") no-repeat -242px -18px !important; }
+.tree-icon-app { background: url("img/icons.png") no-repeat -262px -18px !important; }
+.tree-icon-book { background: url("img/icons.png") no-repeat -2px -38px !important; }
+.tree-icon-usergreen { background: url("img/icons.png") no-repeat -222px -38px !important; }
+.tree-icon-tool1 {background: url("img/icons.png") no-repeat -62px -78px !important;}
+.tree-icon-sclass {background: url("img/icons.png") no-repeat -2px -78px !important;}
+.tree-icon-school {background: url("img/icons.png") no-repeat -22px -78px !important;}
+.tree-icon-tools {background: url("img/icons.png") no-repeat -42px -78px !important;}
+.tree-icon-sqljoin {background: url("img/icons.png") no-repeat -102px -78px !important;}
+.tree-icon-sql {background: url("img/icons.png") no-repeat -122px -78px !important;}
+.tree-icon-favourite {background: url("img/icons.png") no-repeat -142px -78px !important;}
+.tree-icon-comment {background: url("img/icons.png") no-repeat -162px -78px !important;}
+.tree-icon-video {background: url("img/icons.png") no-repeat -322px -38px !important;}
+.tree-icon-audit { background: url("img/icons.png") no-repeat -242px -18px !important; }
+.tree-icon-books {background: url("img/icons.png") no-repeat -322px -58px !important;}
+.tree-icon-online { background: url("img/icons.png") no-repeat -282px -38px !important; }
+.tree-icon-offline { background: url("img/icons.png") no-repeat -302px -38px !important; }
+.tree-icon-textlist { background: url("img/icons.png") no-repeat -122px -58px !important; }
+.tree-icon-showall { background: url("img/icons.png") no-repeat -62px -58px !important; }
+.tree-icon-showdone { background: url("img/icons.png") no-repeat -102px -58px !important; }
+.tree-icon-grid { background: url("img/icons.png") no-repeat -122px 2px !important; }
+.tree-icon-switch { background: url("img/icons.png") no-repeat -42px -38px !important; }
+.tree-icon-view { background: url("img/icons.png") no-repeat -82px 2px !important; }
+
+/*The first line images*/
+.img36-user {background: url("img/img36.png") no-repeat -2px -2px !important;}
+.img36-folder {background: url("img/img36.png") no-repeat -42px -2px !important;}
+.img36-zip {background: url("img/img36.png") no-repeat -82px -2px !important;}
+
+
+#file-choose-view {
+    background: white;
+    font: 11px Arial, Helvetica, sans-serif;
+}
+
+#file-choose-view .thumb {
+    padding: 3px;
+}
+
+#file-choose-view .thumb-wrap {
+    float: left;
+    margin: 4px;
+    margin-right: 0;
+    padding: 5px;
+    width : 100px;
+    cursor: pointer;
+}
+
+#file-choose-view .thumb-wrap span {
+    display: block;
+    overflow: hidden;
+    text-align: center;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+#file-choose-view .x-view-over {
+    border:1px solid #dddddd;
+    background-color: #efefef;
+    padding: 4px;
+    border-radius: 3px;
+}
+
+#file-choose-view .x-item-selected {
+    background: #DFEDFF;
+    border: 1px solid #6593cf;
+    padding: 4px;
+    border-radius: 3px;
+}
+
+#file-choose-view .x-item-selected .thumb {
+    background:transparent;
+}
+
+#file-choose-view .x-item-selected span {
+    color:#1A4D8F;
+}
+img[data-imgpreview="1"] { cursor: pointer !important; }
+.imageviewer {padding:0px !important;background: transparent !important;border:none !important;}
+.imageviewer-header {left:20px !important;top:-10px !important;}
+.imageviewer-body {top:0px !important;}
+.imageviewer-title {position: absolute; bottom: 50px; text-align: center; width: 100%;}
+.imageviewer-title-inner {background-color: #D0D0D0;border-radius:5px;padding: 5px;}
+.actioncolumn-margin {margin-left:5px;}

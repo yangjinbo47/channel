@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN"
+        "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+
+	<!-- www相关 -->
+	<package name="www" namespace="/www" extends="default">
+		<action name="test" class="com.tenfen.www.action.system.TestAction"></action>
+	
+		<!-- 登录页面 -->
+		<action name="login" method="login" class="com.tenfen.www.action.system.IndexAction"></action>
+		<action name="getStatus" method="getStatus" class="com.tenfen.www.action.system.IndexAction"></action>
+		<action name="logout" method="logout" class="com.tenfen.www.action.system.IndexAction"></action>
+		
+		<!-- 清除全部缓存 -->
+		<action name="cache_flushAll" method="flushAll" class="com.tenfen.www.action.system.SystemAction">
+			<result name="success">/Jsp/www/system/cacheState.jsp</result>
+		</action>
+
+		<!-- 清除单个缓存 -->
+		<action name="cache_flushSingle" method="flushSingle" class="com.tenfen.www.action.system.SystemAction">
+			<result name="success">/Jsp/www/system/cacheSingle.jsp</result>
+		</action>
+		
+		<action name="sys_*" method="{1}" class="com.tenfen.www.action.system.SystemAction">
+		</action>
+	</package>
+
+	<!-- www账户相关 -->
+	<package name="account" namespace="/account" extends="default">
+		<!-- 账户列表 -->
+		<action name="user_*" method="{1}" class="com.tenfen.www.action.system.account.UserAction"></action>
+		<action name="role_*" method="{1}" class="com.tenfen.www.action.system.account.RoleAction"></action>
+		<action name="privilege_*" method="{1}" class="com.tenfen.www.action.system.account.PrivilegeAction"></action>
+	</package>
+
+</struts>
