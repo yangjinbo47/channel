@@ -195,23 +195,64 @@ public class MongoTOpenOrderDao extends MongoGenDao<MongoTOpenOrder>{
 	 * @param endTime
 	 * @return
 	 */
+//	public Map<Integer, String> mapReduceAppIds(Integer sellerId, Date startTime, Date endTime, String status, Integer reduce) {
+//		Map<Integer, String> returnMap = new HashMap<Integer, String>();
+//		Criteria criteria = null;
+//		if (reduce == null) {
+//			criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status);
+//		} else {
+//			criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status).and("reduce").is(reduce);
+//		}
+//		Query query = new Query(criteria);
+//		String map = "function() {emit(this.app_id, {count:1,fee:this.fee});}";
+//		String reduceStr = "function(key, values) {"
+//				+ "var total = 0,sumfee = 0;"
+//				+ "for(var i=0;i<values.length;i++){"
+//				+ "total += values[i].count;"
+//				+ "sumfee += values[i].fee;"
+//				+ "}"
+//				+ "return {count:total,fee:sumfee};"
+//				+ "}";
+//		MapReduceResults<MongoTOpenOrder> r = mongoTemplate.mapReduce(query, "t_open_order", map, reduceStr, MongoTOpenOrder.class);
+//		DBObject dbObject = r.getRawResults();
+//		JSONArray jsonArray = JSONArray.parseArray(String.valueOf(dbObject.get("results")));
+//		for (int i = 0; i < jsonArray.size(); i++) {
+//			JSONObject o = (JSONObject)jsonArray.get(i);
+//			JSONObject countObj = (JSONObject)o.get("value");
+//			JSONObject returnJson = new JSONObject();
+//			returnJson.put("count", countObj.getInteger("count"));
+//			returnJson.put("fee", countObj.getInteger("fee"));
+//			returnMap.put(o.getInteger("_id"), returnJson.toString());
+//		}
+//		return returnMap;
+//	}
 	public Map<Integer, String> mapReduceAppIds(Integer sellerId, Date startTime, Date endTime, String status, Integer reduce) {
 		Map<Integer, String> returnMap = new HashMap<Integer, String>();
-		Criteria criteria = null;
 		if (reduce == null) {
-			criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status);
-		} else {
-			criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status).and("reduce").is(reduce);
+			reduce = 0;
 		}
+		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status);
 		Query query = new Query(criteria);
-		String map = "function() {emit(this.app_id, {count:1,fee:this.fee});}";
+		String map = "function() {emit(this.app_id, {count:1,user:1,fee:this.fee,feeReduce:0,imsis:this.imsi,reduce:this.reduce});}";
 		String reduceStr = "function(key, values) {"
-				+ "var total = 0,sumfee = 0;"
+				+ "var total = 0, sumfee = 0, sumfeeReduce = 0;"
+				+ "var temp = new Array();"
+				+ "var imsis = new Array;"
 				+ "for(var i=0;i<values.length;i++){"
 				+ "total += values[i].count;"
+				+ "imsis=imsis.concat(values[i].imsis);"
 				+ "sumfee += values[i].fee;"
+				+ "if("+reduce+" == values[i].reduce){"
+				+ "sumfeeReduce += values[i].fee;"
 				+ "}"
-				+ "return {count:total,fee:sumfee};"
+				+ "}"
+				//imsis去重
+				+ "imsis.sort();"
+				+ "for(i = 0; i < imsis.length; i++) {"
+				+ "if(imsis[i] == imsis[i+1]) {continue;}"
+				+ "temp[temp.length]=imsis[i];"
+				+ "}"
+				+ "return {count:total,user:temp.length,fee:sumfee,feeReduce:sumfeeReduce,imsis:imsis,reduce:"+reduce+"};"
 				+ "}";
 		MapReduceResults<MongoTOpenOrder> r = mongoTemplate.mapReduce(query, "t_open_order", map, reduceStr, MongoTOpenOrder.class);
 		DBObject dbObject = r.getRawResults();
@@ -221,7 +262,9 @@ public class MongoTOpenOrderDao extends MongoGenDao<MongoTOpenOrder>{
 			JSONObject countObj = (JSONObject)o.get("value");
 			JSONObject returnJson = new JSONObject();
 			returnJson.put("count", countObj.getInteger("count"));
+			returnJson.put("user", countObj.getInteger("user"));
 			returnJson.put("fee", countObj.getInteger("fee"));
+			returnJson.put("feeReduce", countObj.getInteger("feeReduce"));
 			returnMap.put(o.getInteger("_id"), returnJson.toString());
 		}
 		return returnMap;

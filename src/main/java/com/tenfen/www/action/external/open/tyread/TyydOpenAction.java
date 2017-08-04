@@ -57,6 +57,7 @@ public class TyydOpenAction extends SimpleActionSupport{
 		String orderNo = reqDataJson.getString("order_no");
 		String smsExtInfo = reqDataJson.getString("sms_ext_info");//格式：7wCXmu7FZO3zAPN,1|天天爱酷跑
 		
+		LogUtil.log("tyyd lxGetProductInfo params: token:"+token+" reqData:"+reqData);
 		try {
 			String code = "";
 			String msg = "";
@@ -65,19 +66,55 @@ public class TyydOpenAction extends SimpleActionSupport{
 			String subject = null;
 			if (!Utils.isEmpty(tOpenApp)) {
 				String secret = tOpenApp.getAppSecret();
+				String appName = tOpenApp.getName();
+				Integer appId = tOpenApp.getId();
+				Integer merchantId = tOpenApp.getMerchantId();
 				List<TokenParam> paramList = new ArrayList<TokenParam>();
 				paramList.add(new TokenParam("req_data",reqData));
 				String geneToken = TokenService.buildToken(paramList, secret);
 				if (geneToken.equals(token)) {
 					//查找订单
-					TOpenOrder tOpenOrder = openOrderManager.getOpenOrderByProperty("orderId", smsExtInfo);
-					if (!Utils.isEmpty(tOpenOrder)) {
+					TOpenOrder tOpenOrder = null;
+					if (!Utils.isEmpty(smsExtInfo)) {						
+						tOpenOrder = openOrderManager.getOpenOrderByProperty("orderId", smsExtInfo);
+					}
+					if (!Utils.isEmpty(tOpenOrder)) {//事先创建过订单，走正常流程
 						subject = tOpenOrder.getSubject();
 						code = "0";
 						msg = "成功";
-					} else {
-						code = "1001";
-						msg = "订单未找到";
+					} else {//事先未创建订单，走mtk流程
+//						code = "1001";
+//						msg = "订单未找到";
+						TOpenOrder order = new TOpenOrder();
+						order.setImsi(phoneNum);
+						order.setOrderId(orderNo);
+						order.setOutTradeNo(System.currentTimeMillis()+"");
+						List<TOpenSeller> tOpenSellerList = openSellerManager.findSellerByAppId(appId);
+						TOpenSeller tOpenSeller = tOpenSellerList.get(0);
+						Integer sellerId = tOpenSeller.getId();
+						order.setSellerId(sellerId);
+						order.setAppId(appId);
+						order.setMerchantId(merchantId);
+						subject = appName;
+						order.setSubject(appName);
+						
+						TOpenProductInfo pro = null;
+						int fee = Integer.parseInt(price);
+						List<TOpenProductInfo> proList = tOpenApp.getProductList();
+						for (TOpenProductInfo tOpenProductInfo : proList) {
+							if (tOpenProductInfo.getPrice() == fee) {
+								pro = tOpenProductInfo;
+							}
+						}
+						String senderNumber = pro.getCode();
+						String instruction = pro.getInstruction();
+						order.setSenderNumber(senderNumber);
+						order.setMsgContent(instruction);
+						order.setFee(fee);
+						openOrderManager.save(order);
+						
+						code = "0";
+						msg = "成功";
 					}
 					
 				} else {
@@ -93,7 +130,7 @@ public class TyydOpenAction extends SimpleActionSupport{
 			JSONObject resp = new JSONObject();
 			resp.put("code", code);
 			resp.put("msg", msg);
-			resp.put("product_name", subject+"+"+price+"分钻石道具");
+			resp.put("product_name", subject+"+"+price+"分道具");
 			resp.put("ip", "127.0.0.1");
 			resp.put("imei", phoneNum);
 			resp.put("user_account", phoneNum);

@@ -39,10 +39,6 @@ Ext.define('CMS.view.operation.sms.SmsOrderReportManager', {
 				text : '成功数',
 				dataIndex : 'succ',
 				flex : 1
-			},  {
-				text : '成功数(扣后)',
-				dataIndex : 'succReduce',
-				flex : 1
 			}, {
 				text : '失败数',
 				dataIndex : 'fail',

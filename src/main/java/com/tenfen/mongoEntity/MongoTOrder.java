@@ -40,6 +40,10 @@ public class MongoTOrder implements Serializable{
 	@Field("reduce")
 	private Integer reduce;
 	
+	//extra fields
+	private String sellerName;
+	private String packageName;
+	
 	public String getId() {
 		return id;
 	}
@@ -150,6 +154,22 @@ public class MongoTOrder implements Serializable{
 
 	public void setReduce(Integer reduce) {
 		this.reduce = reduce;
+	}
+
+	public String getSellerName() {
+		return sellerName;
+	}
+
+	public void setSellerName(String sellerName) {
+		this.sellerName = sellerName;
+	}
+
+	public String getPackageName() {
+		return packageName;
+	}
+
+	public void setPackageName(String packageName) {
+		this.packageName = packageName;
 	}
 	
 }

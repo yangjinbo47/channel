@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -663,17 +664,17 @@ public class TestAction extends SimpleActionSupport {
 		//导入某天的数据至mongo
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
-			String startString = "2017-07-24 00:00:00";
-			String endString = "2017-07-26 00:00:00";
+			String startString = "2017-07-20 00:00:00";
+			String endString = "2017-07-21 00:00:00";
 			Date start = sdf.parse(startString);
 			java.sql.Date startTime = new java.sql.Date(start.getTime());
 			Date end = sdf.parse(endString);
 			java.sql.Date endTime = new java.sql.Date(end.getTime());
-			List<TSmsOrder> smslist = smsOrderDao.getOrderList(startTime, endTime);
-			for (TSmsOrder tSmsOrder : smslist) {
-				System.out.println("插入id："+tSmsOrder.getId());
-				exe.execute(new MongoSmsThread(tSmsOrder));
-			}
+//			List<TSmsOrder> smslist = smsOrderDao.getOrderList(startTime, endTime);
+//			for (TSmsOrder tSmsOrder : smslist) {
+//				System.out.println("插入id："+tSmsOrder.getId());
+//				exe.execute(new MongoSmsThread(tSmsOrder));
+//			}
 			List<TOpenOrder> openlist = openOrderDao.getOrderList(startTime, endTime);
 			for (TOpenOrder tOpenOrder : openlist) {
 				System.out.println("插入id："+tOpenOrder.getId());
@@ -688,6 +689,29 @@ public class TestAction extends SimpleActionSupport {
 			// TODO: handle exception
 		}
 		
+		return null;
+	}
+	
+	public String execute() {
+		TOpenOrder entity = openOrderDao.get(10953332);
+		MongoTOpenOrder mongoTOpenOrder = new MongoTOpenOrder();
+		mongoTOpenOrder.setImsi(entity.getImsi());
+		mongoTOpenOrder.setOrderId(entity.getOrderId());
+		mongoTOpenOrder.setOutTradeNo(entity.getOutTradeNo());
+		mongoTOpenOrder.setSellerId(entity.getSellerId());
+		mongoTOpenOrder.setAppId(entity.getAppId());
+		mongoTOpenOrder.setMerchantId(entity.getMerchantId());
+		mongoTOpenOrder.setSubject(entity.getSubject());
+		mongoTOpenOrder.setSenderNumber(entity.getSenderNumber());
+		mongoTOpenOrder.setMsgContent(entity.getMsgContent());
+		mongoTOpenOrder.setCreateTime(entity.getCreateTime());
+		mongoTOpenOrder.setFee(entity.getFee());
+		mongoTOpenOrder.setStatus(entity.getStatus());
+		mongoTOpenOrder.setPayPhone(entity.getPayPhone());
+		mongoTOpenOrder.setPayTime(entity.getPayTime());
+		mongoTOpenOrder.setProvince(entity.getProvince());
+		mongoTOpenOrder.setReduce(1);
+		mongoTOpenOrderDao.saveAndUpdate(mongoTOpenOrder);
 		return null;
 	}
 	
@@ -895,5 +919,29 @@ public class TestAction extends SimpleActionSupport {
 		}
 		return null;
 	}
+	
+	//更新空白省份
+	public String executeProvince() {
+		String hql = "from TOpenOrder t where t.payPhone is not null and t.province is null";
+		Session session = openOrderDao.getSession();
+		org.hibernate.Query query = session.createQuery(hql);
+		List<TOpenOrder> list = query.list();
+		System.out.println(list.size());
+		for (TOpenOrder tOpenOrder : list) {
+			String phone = tOpenOrder.getPayPhone();
+			if (!phone.startsWith("460")) {				
+				TMobileArea mobileArea = mobileAreaManager.getMobileArea(phone);
+				if (mobileArea == null) {
+					System.out.println(phone+"省份未找到");
+				} else {
+					String province = mobileArea.getProvince();
+					tOpenOrder.setProvince(province);
+					openOrderManager.save(tOpenOrder);
+				}
+			}
+		}
+		return null;
+	}
+	
 }
 

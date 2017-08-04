@@ -328,7 +328,7 @@ public class PushPackageAction extends SimpleActionSupport {
 				String packageName = pushPackage.getPackageName();
 				String monthStr = succ_month.get(pushId);
 				JSONObject monthJson = JSONObject.parseObject(monthStr);
-				Integer monthCount = monthJson.getInteger("count");
+				Integer monthCount = monthJson.getInteger("succ");
 				Integer monthFee = monthJson.getInteger("fee")/100;
 				
 				Integer dayCount = 0;
@@ -336,7 +336,7 @@ public class PushPackageAction extends SimpleActionSupport {
 				String dayStr = succ_day.get(pushId);
 				if (!Utils.isEmpty(dayStr)) {
 					JSONObject dayJson = JSONObject.parseObject(dayStr);
-					dayCount = dayJson.getInteger("count");
+					dayCount = dayJson.getInteger("succ");
 					dayFee = dayJson.getInteger("fee")/100;
 				}
 				//计算每个包多少钱

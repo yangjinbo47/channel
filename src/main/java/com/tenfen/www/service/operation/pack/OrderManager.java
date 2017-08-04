@@ -76,6 +76,21 @@ public class OrderManager {
 	}
 	
 	/**
+	 * 根据号码查询订购记录总数
+	 * @param page
+	 * @param pageSize
+	 * @param phone
+	 * @return
+	 */
+	public Long getOrderCountByPhoneFromMongo(String phone) {
+		return mongoTOrderDao.getOrderListByPhoneCount(phone);
+	}
+	
+	public List<MongoTOrder> getOrderPageByPhoneFromMongo(int page, int pageSize, String phone) {
+		return mongoTOrderDao.getOrderListByPhone(page, pageSize, phone);
+	}
+	
+	/**
 	 * 保存信息
 	 * @param entity
 	 */
@@ -247,6 +262,9 @@ public class OrderManager {
 //	}
 	public Map<String, String> mapReduceProvince(Integer sellerId, Date startTime, Date endTime) {
 		return mongoTOrderDao.mapReduceProvince(sellerId, startTime, endTime);
+	}
+	public Map<String, String> mapReduceProvince(Integer sellerId, Integer pushId, Date startTime, Date endTime) {
+		return mongoTOrderDao.mapReduceProvince(sellerId, pushId, startTime, endTime);
 	}
 	
 	/**
