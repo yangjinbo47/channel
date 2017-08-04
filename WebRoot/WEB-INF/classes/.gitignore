@@ -2,8 +2,6 @@
 /config
 /doc
 /ehcache
-/log4j.properties
 /spring
 /struts
-/struts.xml
 /template

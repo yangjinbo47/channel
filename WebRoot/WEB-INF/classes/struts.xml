@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN"
+        "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+
+	<!-- 开发模式下使用，这样可以打印出更详细的错误信息 -->
+	<constant name="struts.devMode" value="false" />
+	<!-- 设 置浏览器是否缓存静态内容，默认值为true（生产环境下使用），开发阶段最好 关闭 -->
+	<!--  
+	<constant name="struts.serve.static.browserCache " value="false" />
+	-->
+	<!-- 当 struts的配置文件修改后，系统是否自动重新加载该文件，默认值为false（生产环境下使用），开发阶段最好打开 -->
+	<!--  
+	<constant name="struts.configuration.xml.reload" value="true" />
+	-->
+	<constant name="struts.objectFactory" value="spring" />
+	<constant name="struts.i18n.encoding" value="UTF-8" />
+	<constant name="struts.action.extension" value="action" />
+	<constant name="struts.ui.theme" value="simple" />
+	<constant name="struts.enable.SlashesInActionNames" value="true" />
+
+	<package name="default" namespace="/" extends="struts-default">
+		<interceptors>
+			<interceptor name="exceptionInterceptor" class="com.tenfen.www.interceptor.ExceptionInterceptor" />
+			<interceptor name="timerInterceptor" class="com.tenfen.www.interceptor.TimerInterceptor" />
+			<interceptor-stack name="myInterceptorstack">
+				<interceptor-ref name="timerInterceptor" />
+				<interceptor-ref name="exceptionInterceptor" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+		</interceptors>
+		<default-interceptor-ref name="myInterceptorstack" />
+	</package>
+
+	<include file="struts/struts-*.xml"></include>
+
+</struts>
