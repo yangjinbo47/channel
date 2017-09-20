@@ -28,7 +28,6 @@ import com.tenfen.www.service.operation.open.OpenAppManager;
 import com.tenfen.www.service.operation.open.OpenOrderManager;
 import com.tenfen.www.service.operation.open.OpenSellerManager;
 import com.tenfen.www.service.system.ImsiMdnRelationManager;
-import com.tenfen.www.util.SendToBJ;
 import com.tenfen.www.util.TokenService;
 import com.tenfen.www.util.TokenService.TokenParam;
 
@@ -755,11 +754,6 @@ public class TySpaceCCAction extends SimpleActionSupport {
 		        if (!Utils.isEmpty(url)) {
 		        	HttpClientUtils.postJson(url, returnJson.toString());
 				}
-		        
-		        //调用北京平台接口
-		        TOpenSeller tOpenSeller = openSellerManager.get(tOpenOrder.getSellerId());
-		        String merName = tOpenSeller.getName();
-		        SendToBJ.sendOrder(String.valueOf(tOpenOrder.getSellerId()), merName, outTradeNo, appNameDecode, tOpenOrder.getCreateTimeString(), String.valueOf(fee), tOpenOrder.getStatus(), tOpenOrder.getPayTimeString(), imsi, "2");
 			} catch (Exception e) {
 				LogUtil.error(e.getMessage(), e);
 			}

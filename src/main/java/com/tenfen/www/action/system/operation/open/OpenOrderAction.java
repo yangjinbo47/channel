@@ -76,19 +76,22 @@ public class OpenOrderAction extends SimpleActionSupport {
 				java.sql.Date start = new java.sql.Date(sdf.parse(startTime).getTime());
 				java.sql.Date end = new java.sql.Date(sdf.parse(endTime).getTime());
 				
-				Page<TOpenOrder> orderPage = new Page<TOpenOrder>();
-				//设置默认排序方式
-				orderPage.setPageSize(limit);
-				orderPage.setPageNo(page);
+//				Page<TOpenOrder> orderPage = new Page<TOpenOrder>();
+//				//设置默认排序方式
+//				orderPage.setPageSize(limit);
+//				orderPage.setPageNo(page);
+//				
+//				orderPage = openOrderManager.getOrderPageByProperty(orderPage, sellerId, payPhone, start, end);
 				
-				orderPage = openOrderManager.getOrderPageByProperty(orderPage, sellerId, payPhone, start, end);
+				List<MongoTOpenOrder> openOrders = openOrderManager.getOrderListFromMongo(page, limit, sellerId, start, end);
 				
-				long nums = orderPage.getTotalCount();
+				long nums = openOrderManager.getOrderListFromMongoCount(sellerId, start, end);
+//				long nums = orderPage.getTotalCount();
 				StringBuilder jstr = new StringBuilder("{");
 				jstr.append("total:" + String.valueOf(nums) + ",");
 				jstr.append("orders:");
 
-				List<TOpenOrder> openOrders = orderPage.getResult();
+//				List<TOpenOrder> openOrders = orderPage.getResult();
 				jstr.append(JSON.toJSONString(openOrders, config));
 				jstr.append("}");
 				StringUtil.printJson(response, jstr.toString());
@@ -219,11 +222,13 @@ public class OpenOrderAction extends SimpleActionSupport {
 				cell.setCellValue(new XSSFRichTextString("是否扣量"));
 				cell.setCellStyle(style);
 				
-				List<TOpenOrder> list = openOrderManager.getOrderList(sellerId, payPhone, start, end);
+//				List<TOpenOrder> list = openOrderManager.getOrderList(sellerId, payPhone, start, end);
+				List<MongoTOpenOrder> list = openOrderManager.getOrderListFromMongo(sellerId, payPhone, start, end);
 				// 第五步，写入实体数据 实际应用中这些数据从数据库得到，
 				for (int j = 0; j < list.size(); j++) {
 					row = sheet.createRow((int)j + 1);
-					TOpenOrder openOrder = list.get(j);
+//					TOpenOrder openOrder = list.get(j);
+					MongoTOpenOrder openOrder = list.get(j);
 					row.createCell((short) 0).setCellValue(new XSSFRichTextString(openOrder.getOrderId()));
 					row.createCell((short) 1).setCellValue(new XSSFRichTextString(openOrder.getOutTradeNo()));
 					row.createCell((short) 2).setCellValue(new XSSFRichTextString(openOrder.getImsi()));

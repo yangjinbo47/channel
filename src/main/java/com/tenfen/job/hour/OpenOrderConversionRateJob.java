@@ -7,9 +7,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.tenfen.entity.operation.open.TOpenOrder;
 import com.tenfen.entity.operation.open.TOpenOrderConversionrate;
 import com.tenfen.entity.operation.open.TOpenSeller;
+import com.tenfen.mongoEntity.MongoTOpenOrder;
 import com.tenfen.util.LogUtil;
 import com.tenfen.util.Utils;
 import com.tenfen.www.common.Constants;
@@ -56,12 +56,13 @@ public class OpenOrderConversionRateJob {
 			hour = hour == 23 ? 0 : hour+1;
 			List<TOpenSeller> sellerList = openSellerManager.findAllOpenSellerList(Constants.USER_TYPE.ALL.getValue());
 			for (TOpenSeller tOpenSeller : sellerList) {
-				List<TOpenOrder> orders = openOrderManager.getOrderList(tOpenSeller.getId(), null, start, end);
+//				List<TOpenOrder> orders = openOrderManager.getOrderList(tOpenSeller.getId(), null, start, end);
+				List<MongoTOpenOrder> orders = openOrderManager.getOrderListFromMongo(tOpenSeller.getId(), null, start, end);
 				
 				int orderReq = orders.size();
 				int mr = 0;
 				int fail = 0;
-				for (TOpenOrder tOpenOrder : orders) {
+				for (MongoTOpenOrder tOpenOrder : orders) {
 					if ("3".equals(tOpenOrder.getStatus())) {
 						mr++;
 					} else if ("4".equals(tOpenOrder.getStatus())) {

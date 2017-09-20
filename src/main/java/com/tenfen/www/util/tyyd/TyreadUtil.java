@@ -155,7 +155,7 @@ public class TyreadUtil {
 	/**
 	 * 获取产品剩余量
 	 */
-	public Integer getLimit(Integer pushPackageId) {
+	public Integer getProductLimit(Integer pushPackageId) {
 		Integer limit = 0;
 		try {
 			ICacheClient mc = cacheFactory.getCommonCacheClient();
@@ -173,6 +173,19 @@ public class TyreadUtil {
 			LogUtil.error(e.getMessage(), e);
 		}
 		return limit;
+	}
+	
+	public void clearProductLimit(Integer pushPackageId) {
+		try {
+			ICacheClient mc = cacheFactory.getCommonCacheClient();
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+			String key = "limit_"+pushPackageId+"_"+sdf.format(new Date());
+			boolean b = mc.deleteCache(key);
+			LogUtil.log("#### MemcacheClient.deleteCache(" + key + "),result="+ b +";");
+		} catch (Exception e) {
+			LogUtil.error(e.getMessage(), e);
+		}
 	}
 	
 	/**

@@ -155,30 +155,6 @@
 	
 	
 	<!-- hour -->
-	<!-- 数据同步至北京sftp -->
-	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-	    <property name="triggers">
-	        <list>
-	            <ref bean="ftpDataDailyTrigger"/>
-	        </list>
-	    </property>
-		<property name="autoStartup" value="true"/>
-	</bean>
-	
-	<bean id="ftpDataDailyTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
-       <property name="jobDetail" ref="ftpDataDailyJobDetail"/>
-       <property name="cronExpression" value="0 0 * * * ?"/>
-	</bean>
-	
-	<bean id="ftpDataDailyJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">   
-        <property name="targetObject" ref="ftpDataDailyJob"/>
-        <property name="targetMethod" value="execute"/>
-        <property name="concurrent" value="false"/>
-        <!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启一个新的线程 -->  
-	</bean>
-	
-	<bean id="ftpDataDailyJob" class="com.tenfen.job.hour.FtpDataDailyJob"/>
-	
 	<!-- 能力开放分时图转化率 -->
 	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
 	    <property name="triggers">
@@ -254,6 +230,81 @@
 	
 	
 	
+	<!-- week -->
+	<!-- 周报汇总 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+	    <property name="triggers">
+	        <list>
+	            <ref bean="weekTrigger"/>
+	        </list>
+	    </property>
+		<property name="autoStartup" value="true"/>
+	</bean>
+	
+	<bean id="weekTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+       <property name="jobDetail" ref="weekJobDetail"/>
+       <property name="cronExpression" value="0 0 1 ? * MON"/>
+	</bean>
+	
+	<bean id="weekJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">   
+        <property name="targetObject" ref="weekJob"/>
+        <property name="targetMethod" value="execute"/>
+        <property name="concurrent" value="false"/>
+        <!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启一个新的线程 -->  
+	</bean>
+	
+	<bean id="weekJob" class="com.tenfen.job.week.WeekJob"/>
+	
+	<!-- 能力开放周报 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+	    <property name="triggers">
+	        <list>
+	            <ref bean="openWeekTrigger"/>
+	        </list>
+	    </property>
+		<property name="autoStartup" value="true"/>
+	</bean>
+	
+	<bean id="openWeekTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+       <property name="jobDetail" ref="openWeekJobDetail"/>
+       <property name="cronExpression" value="0 0 1 ? * MON"/>
+	</bean>
+	
+	<bean id="openWeekJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">   
+        <property name="targetObject" ref="openWeekJob"/>
+        <property name="targetMethod" value="execute"/>
+        <property name="concurrent" value="false"/>
+        <!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启一个新的线程 -->  
+	</bean>
+	
+	<bean id="openWeekJob" class="com.tenfen.job.week.OpenWeekJob"/>
+	
+	<!-- 短代周报 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+	    <property name="triggers">
+	        <list>
+	            <ref bean="smsWeekTrigger"/>
+	        </list>
+	    </property>
+		<property name="autoStartup" value="true"/>
+	</bean>
+	
+	<bean id="smsWeekTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+       <property name="jobDetail" ref="smsWeekJobDetail"/>
+       <property name="cronExpression" value="0 0 1 ? * MON"/>
+	</bean>
+	
+	<bean id="smsWeekJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">   
+        <property name="targetObject" ref="smsWeekJob"/>
+        <property name="targetMethod" value="execute"/>
+        <property name="concurrent" value="false"/>
+        <!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启一个新的线程 -->  
+	</bean>
+	
+	<bean id="smsWeekJob" class="com.tenfen.job.week.SmsWeekJob"/>
+	
+	
+	
 	
 	<!-- month -->
 	<!-- 订单移入历史数据表 -->
@@ -303,6 +354,30 @@
 	</bean>
 	
 	<bean id="smsOrderToHistoryJob" class="com.tenfen.job.month.SmsOrderToHistoryJob"/>
+	
+	<!-- 月报汇总 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+	    <property name="triggers">
+	        <list>
+	            <ref bean="monthTrigger"/>
+	        </list>
+	    </property>
+		<property name="autoStartup" value="true"/>
+	</bean>
+	
+	<bean id="monthTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+       <property name="jobDetail" ref="monthJobDetail"/>
+       <property name="cronExpression" value="0 0 6 1 * ? *"/>
+	</bean>
+	
+	<bean id="monthJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">   
+        <property name="targetObject" ref="monthJob"/>
+        <property name="targetMethod" value="execute"/>
+        <property name="concurrent" value="false"/>
+        <!-- 是否允许任务并发执行。当值为false时，表示必须等到前一个线程处理完毕后才再启一个新的线程 -->  
+	</bean>
+	
+	<bean id="monthJob" class="com.tenfen.job.month.MonthJob"/>
 	
 	<!-- 能力开放月报 -->
 	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">

@@ -78,19 +78,20 @@ public class OpenAppManager {
 		ICacheClient mc = cacheFactory.getCommonCacheClient();
 		TOpenApp tOpenApp = (TOpenApp)mc.getCache(key);
 		if (Utils.isEmpty(tOpenApp)) {
-			tOpenApp = openAppDao.get(id);
-			TOpenApp newOpenApp = new TOpenApp();
-			newOpenApp.setId(tOpenApp.getId());
-			newOpenApp.setName(tOpenApp.getName());
-			newOpenApp.setMerchantId(tOpenApp.getMerchantId());
-			newOpenApp.setAppKey(tOpenApp.getAppKey());
-			newOpenApp.setAppSecret(tOpenApp.getAppSecret());
-			newOpenApp.setCallbackUrl(tOpenApp.getCallbackUrl());
-//			newOpenApp.setExcludeArea(tOpenApp.getExcludeArea());
-			newOpenApp.setClientId(tOpenApp.getClientId());
-			
-			tOpenApp = newOpenApp;
-			mc.setCache(key, tOpenApp, CacheFactory.HOUR * 6);
+			tOpenApp = getOpenAppByProperty("id", id);
+			if (!Utils.isEmpty(tOpenApp)) {
+				TOpenApp newOpenApp = new TOpenApp();
+				newOpenApp.setId(tOpenApp.getId());
+				newOpenApp.setName(tOpenApp.getName());
+				newOpenApp.setMerchantId(tOpenApp.getMerchantId());
+				newOpenApp.setAppKey(tOpenApp.getAppKey());
+				newOpenApp.setAppSecret(tOpenApp.getAppSecret());
+				newOpenApp.setCallbackUrl(tOpenApp.getCallbackUrl());
+				newOpenApp.setClientId(tOpenApp.getClientId());
+				
+				tOpenApp = newOpenApp;
+				mc.setCache(key, tOpenApp, CacheFactory.HOUR * 6);
+			}
 		}
 		return tOpenApp;
 	}

@@ -44,6 +44,7 @@ public class OpenMonthJob {
 	//from mongodb mapreduce 高效模式，防止内存溢出
 	public void execute() {
 		try {
+			boolean haveData = false;//是否有数据，有数据则发送邮件
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.MONTH, -1);
 			calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -78,6 +79,7 @@ public class OpenMonthJob {
 				Map<Integer, String> succPayReduceMap = openOrderManager.mapReduceAppIds(sellerId, start, end, "3", 0);//扣量后的成功数据
 				
 				for (Integer appId : allStatusMap.keySet()) {
+					haveData = true;
 					Integer noPayInt = null;
 					if (noPayMap.size() == 0) {
 						noPayInt = 0;
@@ -195,37 +197,39 @@ public class OpenMonthJob {
 				map.put(sellerId, openDailyBeans);
 			}//end sellerList
 			
-			//查询邮件组
-			List<TOpenMailgroup> groupList = openMailManager.getGroupAll();
-			for (TOpenMailgroup tOpenMailgroup : groupList) {
-				StringBuffer sb = new StringBuffer();
-				sb.append("<html><body><table border=\"1\" cellspacing=\"0\">");
-				sb.append("<tr style=\"background-color:#a0c6e5\"><td width=\"20%\">渠道名</td><td width=\"14%\">应用名</td><td width=\"6%\">下单数</td><td width=\"6%\">成功数</td><td width=\"6%\">成功数(扣后)</td><td width=\"6%\">失败数</td><td width=\"6%\">未支付</td><td width=\"6%\">金额</td><td width=\"6%\">金额(扣后)</td><td width=\"6%\">用户数</td><td width=\"6%\">成功用户数</td><td width=\"6%\">MR/MO转化率</td><td width=\"6%\">MR/REQ转化率</td></tr>");
-				
-				//查询邮件组内关联渠道
-				List<TOpenSeller> sellerList = tOpenMailgroup.getSellerList();
-				for (TOpenSeller tOpenSeller : sellerList) {
-					List<OpenDailyBean> dataList = map.get(tOpenSeller.getId());//渠道下的数据组
-					for (int i = 0; i < dataList.size(); i++) {
-						OpenDailyBean data = dataList.get(i);
-						if (i == 0) {
-							sb.append("<tr><td rowspan=\""+dataList.size()+"\">"+data.getSellerName()+"</td><td>"+data.getAppName()+"</td><td>"+data.getOrderReq()+"</td><td>"+data.getSucc()+"</td><td>"+data.getSuccReduce()+"</td><td>"+data.getFail()+"</td><td>"+data.getNoPay()+"</td><td>"+data.getFee()+"</td><td>"+data.getFeeReduce()+"</td><td>"+data.getUserNum()+"</td><td>"+data.getUserSuccNum()+"</td><td>"+data.getRate()+"</td><td>"+data.getReqRate()+"</td></tr>");
-						} else {
-							sb.append("<tr><td>"+data.getAppName()+"</td><td>"+data.getOrderReq()+"</td><td>"+data.getSucc()+"</td><td>"+data.getSuccReduce()+"</td><td>"+data.getFail()+"</td><td>"+data.getNoPay()+"</td><td>"+data.getFee()+"</td><td>"+data.getFeeReduce()+"</td><td>"+data.getUserNum()+"</td><td>"+data.getUserSuccNum()+"</td><td>"+data.getRate()+"</td><td>"+data.getReqRate()+"</td></tr>");
+			if (haveData) {
+				//查询邮件组
+				List<TOpenMailgroup> groupList = openMailManager.getGroupAll();
+				for (TOpenMailgroup tOpenMailgroup : groupList) {
+					StringBuffer sb = new StringBuffer();
+					sb.append("<html><body><table border=\"1\" cellspacing=\"0\">");
+					sb.append("<tr style=\"background-color:#a0c6e5\"><td width=\"20%\">渠道名</td><td width=\"14%\">应用名</td><td width=\"6%\">下单数</td><td width=\"6%\">成功数</td><td width=\"6%\">成功数(扣后)</td><td width=\"6%\">失败数</td><td width=\"6%\">未支付</td><td width=\"6%\">金额</td><td width=\"6%\">金额(扣后)</td><td width=\"6%\">用户数</td><td width=\"6%\">成功用户数</td><td width=\"6%\">MR/MO转化率</td><td width=\"6%\">MR/REQ转化率</td></tr>");
+					
+					//查询邮件组内关联渠道
+					List<TOpenSeller> sellerList = tOpenMailgroup.getSellerList();
+					for (TOpenSeller tOpenSeller : sellerList) {
+						List<OpenDailyBean> dataList = map.get(tOpenSeller.getId());//渠道下的数据组
+						for (int i = 0; i < dataList.size(); i++) {
+							OpenDailyBean data = dataList.get(i);
+							if (i == 0) {
+								sb.append("<tr><td rowspan=\""+dataList.size()+"\">"+data.getSellerName()+"</td><td>"+data.getAppName()+"</td><td>"+data.getOrderReq()+"</td><td>"+data.getSucc()+"</td><td>"+data.getSuccReduce()+"</td><td>"+data.getFail()+"</td><td>"+data.getNoPay()+"</td><td>"+data.getFee()+"</td><td>"+data.getFeeReduce()+"</td><td>"+data.getUserNum()+"</td><td>"+data.getUserSuccNum()+"</td><td>"+data.getRate()+"</td><td>"+data.getReqRate()+"</td></tr>");
+							} else {
+								sb.append("<tr><td>"+data.getAppName()+"</td><td>"+data.getOrderReq()+"</td><td>"+data.getSucc()+"</td><td>"+data.getSuccReduce()+"</td><td>"+data.getFail()+"</td><td>"+data.getNoPay()+"</td><td>"+data.getFee()+"</td><td>"+data.getFeeReduce()+"</td><td>"+data.getUserNum()+"</td><td>"+data.getUserSuccNum()+"</td><td>"+data.getRate()+"</td><td>"+data.getReqRate()+"</td></tr>");
+							}
 						}
 					}
-				}
-				sb.append("</table><br/><br/></body>");
-				//查询邮件组关联人
-				List<TOpenMailer> mailers = tOpenMailgroup.getMailerList();
-				if (mailers.size() > 0) {					
-					String[] mailToList = new String[mailers.size()];
-					for (int i = 0; i < mailers.size(); i++) {
-						mailToList[i] = mailers.get(i).getEmail();
+					sb.append("</table><br/><br/></body>");
+					//查询邮件组关联人
+					List<TOpenMailer> mailers = tOpenMailgroup.getMailerList();
+					if (mailers.size() > 0) {					
+						String[] mailToList = new String[mailers.size()];
+						for (int i = 0; i < mailers.size(); i++) {
+							mailToList[i] = mailers.get(i).getEmail();
+						}
+						//发送邮件
+						String mailTitle = "能力开放月报"+calendar.get(Calendar.YEAR)+"年"+(calendar.get(Calendar.MONTH)+1)+"月("+tOpenMailgroup.getName()+")";
+						SendMailUtil.sendHtmlMail(mailLoginName, mailLoginPwd, mailSmtp, mailToList, mailTitle, sb.toString());
 					}
-					//发送邮件
-					String mailTitle = "能力开放月报"+calendar.get(Calendar.YEAR)+"年"+(calendar.get(Calendar.MONTH)+1)+"月("+tOpenMailgroup.getName()+")";
-					SendMailUtil.sendHtmlMail(mailLoginName, mailLoginPwd, mailSmtp, mailToList, mailTitle, sb.toString());
 				}
 			}
 		} catch (Exception e) {

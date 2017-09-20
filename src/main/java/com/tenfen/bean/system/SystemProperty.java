@@ -15,6 +15,7 @@ public class SystemProperty {
 	private String unicomDataZxRemoteDir;//联通在信数据远程路径
 	
 	private Boolean isSaveToMongo;//是否保存到hbase
+	private Boolean isSaveToBeijing;//是否同步到北京
 
 	public String getClientVisitLogDir() {
 		return clientVisitLogDir;
@@ -110,6 +111,14 @@ public class SystemProperty {
 
 	public void setIsSaveToMongo(Boolean isSaveToMongo) {
 		this.isSaveToMongo = isSaveToMongo;
+	}
+
+	public Boolean getIsSaveToBeijing() {
+		return isSaveToBeijing;
+	}
+
+	public void setIsSaveToBeijing(Boolean isSaveToBeijing) {
+		this.isSaveToBeijing = isSaveToBeijing;
 	}
 
 }

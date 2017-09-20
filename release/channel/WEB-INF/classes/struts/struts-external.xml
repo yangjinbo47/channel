@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN"
+        "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+
+	<!-- external相关 -->
+	<package name="external" namespace="/external" extends="default">
+	    <!-- wap包月支付接口（电信） -->
+	    <action name="createOrder" method="createOrder" class="com.tenfen.www.action.external.pack.PackAction"></action>
+		<action name="pay" method="pay" class="com.tenfen.www.action.external.pack.PackAction"></action>
+		
+		<!-- 合作方使用imsi查询号码接口 -->
+		<action name="queryPhoneByIMSI" method="queryPhoneByIMSI" class="com.tenfen.www.action.external.MDNIMSIRelationAction"></action>
+		
+		<!-- 能力开放接口 -->
+		<!-- 天翼阅读能力开放使用接口  -->
+		<action name="tyydopen_*" method="{1}" class="com.tenfen.www.action.external.open.tyread.TyydOpenAction"></action>
+		<!-- 天翼开放平台使用接口  -->
+		<action name="tyOpen_*" method="{1}" class="com.tenfen.www.action.external.open.tyopen.TyOpenAction"></action>
+		<!-- 爱动漫包使用接口(欢心点点)  -->
+		<action name="tyhxidm_*" method="{1}" class="com.tenfen.www.action.external.open.tyidm.TyHxIdmAction"></action>
+		<!-- 爱动漫（十分）  -->
+		<action name="tyidm_*" method="{1}" class="com.tenfen.www.action.external.open.tyidm.TyIdmAction"></action>
+		
+		<!-- 天翼空间（三方，朗天）使用接口  -->
+		<action name="tySpaceltOpen_*" method="{1}" class="com.tenfen.www.action.external.open.tyspace.TySpaceLTAction"></action>
+		<!-- 天翼空间（三方，欣网）使用接口  -->
+		<action name="tySpacexwOpen_*" method="{1}" class="com.tenfen.www.action.external.open.tyspace.TySpaceXWAction"></action>
+		<!-- 天翼空间（三方，通用）使用接口  -->
+		<action name="tySpacegnOpen_*" method="{1}" class="com.tenfen.www.action.external.open.tyspace.TySpaceGNAction"></action>
+		<!-- 天翼空间（三方，掌游）使用接口  -->
+		<action name="tySpacezyOpen_*" method="{1}" class="com.tenfen.www.action.external.open.tyspace.TySpaceZYAction"></action>
+		<!-- 天翼空间（三方，长城）使用接口  -->
+		<action name="tySpaceccOpen_*" method="{1}" class="com.tenfen.www.action.external.open.tyspace.TySpaceCCAction"></action>
+		<action name="tySpacePackageOpen_*" method="{1}" class="com.tenfen.www.action.external.open.tyspace.TySpacePackageAction"></action>
+		
+		<!-- 能力开放通用接口 -->
+		<action name="generalOpen_*" method="{1}" class="com.tenfen.www.action.external.open.GeneralOpenAction"></action>
+		<!-- wo阅读能力开放 -->
+		<action name="woReadOpen_*" method="{1}" class="com.tenfen.www.action.external.open.woread.WoReadOpenAction"></action>
+		<!-- wo+能力开放 -->
+		<action name="woPlusOpen_*" method="{1}" class="com.tenfen.www.action.external.open.woplus.WoPlusOpenAction"></action>
+		<!-- wo+融合支付 -->
+		<action name="woPlusMix_*" method="{1}" class="com.tenfen.www.action.external.open.woplus.WoPlusMixAction"></action>
+		<!-- 翼信能力开放 -->
+		<action name="yiXinOpen_*" method="{1}" class="com.tenfen.www.action.external.open.yixin.YiXinOpenAction"></action>
+		<!-- 移动动漫 -->
+		<action name="cmccDm_*" method="{1}" class="com.tenfen.www.action.external.open.cmccdm.CmccDmAction"></action>
+		
+		<!-- 第三方支付 -->
+		<!-- 微信支付 -->
+		<action name="weixinOpen_*" method="{1}" class="com.tenfen.www.action.external.thirdpart.WeixinOpenAction"></action>
+		<!-- 支付宝支付 -->
+		<action name="alipayOpen_*" method="{1}" class="com.tenfen.www.action.external.thirdpart.AlipayOpenAction"></action>
+	</package>
+
+</struts>

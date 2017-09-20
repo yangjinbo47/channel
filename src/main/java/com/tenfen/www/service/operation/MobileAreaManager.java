@@ -37,7 +37,7 @@ public class MobileAreaManager {
 			if (list != null && !list.isEmpty()) {
 				mobileArea = list.get(0);
 				if (mobileArea != null) {
-					iCacheClient.setCache(phoneNum.substring(0,8), mobileArea, CacheFactory.HOUR*2);
+					iCacheClient.setCache(phoneNum.substring(0,8), mobileArea, CacheFactory.DAY);
 				}
 			}
 		}

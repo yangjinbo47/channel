@@ -11,15 +11,17 @@ import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springside.modules.orm.Page;
 
 import com.tenfen.bean.system.SystemProperty;
 import com.tenfen.entity.operation.open.TOpenOrder;
+import com.tenfen.entity.operation.open.TOpenSeller;
 import com.tenfen.mongoEntity.MongoTOpenOrder;
 import com.tenfen.util.LogUtil;
 import com.tenfen.util.Utils;
 import com.tenfen.www.dao.operation.open.OpenOrderDao;
+import com.tenfen.www.dao.operation.open.OpenSellerDao;
 import com.tenfen.www.mongodao.MongoTOpenOrderDao;
+import com.tenfen.www.util.sendToBj.SendOpenToBJ;
 
 @Component
 @Transactional
@@ -30,6 +32,8 @@ public class OpenOrderManager {
 	
 	@Autowired
 	private OpenOrderDao openOrderDao;
+	@Autowired
+	private OpenSellerDao openSellerDao;
 	@Autowired
 	private SystemProperty systemProperty;
 	@Autowired
@@ -55,15 +59,15 @@ public class OpenOrderManager {
 	 * @return
 	 * @author BOBO
 	 */
-	public Page<TOpenOrder> getOrderPageByProperty(final Page<TOpenOrder> page, Integer sellerId, String payPhone, Date start, Date end) {
-		Page<TOpenOrder> orderPage = null;
-		if (Utils.isEmpty(payPhone)) {
-			orderPage = openOrderDao.getOrderPage(page, sellerId, start, end);
-		} else {
-			orderPage = openOrderDao.getOrderPage(page, payPhone, sellerId, start, end);
-		}
-		return orderPage;
-	}
+//	public Page<TOpenOrder> getOrderPageByProperty(final Page<TOpenOrder> page, Integer sellerId, String payPhone, Date start, Date end) {
+//		Page<TOpenOrder> orderPage = null;
+//		if (Utils.isEmpty(payPhone)) {
+//			orderPage = openOrderDao.getOrderPage(page, sellerId, start, end);
+//		} else {
+//			orderPage = openOrderDao.getOrderPage(page, payPhone, sellerId, start, end);
+//		}
+//		return orderPage;
+//	}
 	
 	/**
 	 * 根据号码查询订购列表
@@ -71,12 +75,32 @@ public class OpenOrderManager {
 	 * @param phone
 	 * @return
 	 */
-	public Page<TOpenOrder> getOrderPageByPhone(final Page<TOpenOrder> page, String phone) {
-		Page<TOpenOrder> orderPage = null;
-		if (!Utils.isEmpty(phone)) {
-			orderPage = openOrderDao.getOrderPageByPhone(page, phone);
-		}
-		return orderPage;
+//	public Page<TOpenOrder> getOrderPageByPhone(final Page<TOpenOrder> page, String phone) {
+//		Page<TOpenOrder> orderPage = null;
+//		if (!Utils.isEmpty(phone)) {
+//			orderPage = openOrderDao.getOrderPageByPhone(page, phone);
+//		}
+//		return orderPage;
+//	}
+	
+	/**
+	 * 查询订购列表
+	 * @param page
+	 * @return
+	 * @author BOBO
+	 */
+	public List<MongoTOpenOrder> getOrderListFromMongo(int page, int pageSize, Integer sellerId, Date startTime, Date endTime) {
+		return mongoTOpenOrderDao.getOrderList(page, pageSize, sellerId, startTime, endTime);
+	}
+	
+	/**
+	 * 查询订购总数
+	 * @param page
+	 * @return
+	 * @author BOBO
+	 */
+	public Long getOrderListFromMongoCount(Integer sellerId, Date startTime, Date endTime) {
+		return mongoTOpenOrderDao.getOrderListCount(sellerId, startTime, endTime);
 	}
 	
 	/**
@@ -101,16 +125,16 @@ public class OpenOrderManager {
 		return mongoTOpenOrderDao.getOrderListByPhoneCount(phone);
 	}
 	
-	public List<TOpenOrder> getOrderList(Integer sellerId, String payPhone, Date startTime, Date endTime) {
-		List<TOpenOrder> list = new ArrayList<TOpenOrder>();
-		if (Utils.isEmpty(payPhone)) {
-			list = openOrderDao.getOrderList(sellerId, startTime, endTime);
-		} else {
-			list = openOrderDao.getOrderList(sellerId, payPhone, startTime, endTime);
-		}
-		
-		return list;
-	}
+//	public List<TOpenOrder> getOrderList(Integer sellerId, String payPhone, Date startTime, Date endTime) {
+//		List<TOpenOrder> list = new ArrayList<TOpenOrder>();
+//		if (Utils.isEmpty(payPhone)) {
+//			list = openOrderDao.getOrderList(sellerId, startTime, endTime);
+//		} else {
+//			list = openOrderDao.getOrderList(sellerId, payPhone, startTime, endTime);
+//		}
+//		
+//		return list;
+//	}
 	
 	public List<MongoTOpenOrder> getOrderListFromMongo(Integer sellerId, String payPhone, Date startTime, Date endTime) {
 		List<MongoTOpenOrder> list = new ArrayList<MongoTOpenOrder>();
@@ -200,10 +224,19 @@ public class OpenOrderManager {
 	 */
 	public void save(TOpenOrder entity) {
 		openOrderDao.save(entity);
-		//同步至mongo
 		try {
+			//同步至mongo
 			if (systemProperty.getIsSaveToMongo()) {
 				exe.execute(new MongoThread(entity));
+			}
+			//同步至北京平台
+			if (systemProperty.getIsSaveToBeijing()) {
+				Integer sellerId = entity.getSellerId();
+				TOpenSeller openSeller = openSellerDao.get(sellerId);
+				Integer companyShow = openSeller.getCompanyShow();
+				if ("3".equals(entity.getStatus()) && companyShow==1) {
+					exe.execute(new SendOpenToBJ(entity));
+				}
 			}
 		} catch (Exception e) {
 			LogUtil.error(e.getMessage(), e);

@@ -10,6 +10,7 @@ import org.springside.modules.orm.Page;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SimpleDateFormatSerializer;
+import com.tenfen.cache.CacheFactory;
 import com.tenfen.entity.operation.pack.PushPackage;
 import com.tenfen.entity.operation.pack.PushPackageLimit;
 import com.tenfen.util.StringUtil;
@@ -19,6 +20,7 @@ import com.tenfen.www.action.SimpleActionSupport;
 import com.tenfen.www.common.Constants;
 import com.tenfen.www.common.MSG;
 import com.tenfen.www.service.operation.pack.PackageManager;
+import com.tenfen.www.util.tyyd.TyreadUtil;
 
 public class PushPackageAction extends SimpleActionSupport {
 
@@ -26,6 +28,8 @@ public class PushPackageAction extends SimpleActionSupport {
 
 	@Autowired
 	private PackageManager packageManager;
+	@Autowired
+	private CacheFactory cacheFactory;
 //	@Autowired
 //	private PackageChannelManager packageChannelManager;
 
@@ -192,6 +196,10 @@ public class PushPackageAction extends SimpleActionSupport {
 					pushPackage.setPackageLimit(packageLimit);
 					pushPackage.setCompanyShow(companyShow);
 					packageManager.save(pushPackage);
+					
+					//删除产品包月量缓存
+					TyreadUtil tyu = new TyreadUtil(cacheFactory, null, null, packageManager, null);
+					tyu.clearProductLimit(packageId);
 				}
 			}
 

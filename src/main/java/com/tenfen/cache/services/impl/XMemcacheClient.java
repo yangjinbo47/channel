@@ -95,7 +95,7 @@ public class XMemcacheClient implements ICacheClient {
 		boolean b = false;
 		try {
 			b = memcachedClient.delete(key);
-//			if (b) {				
+//			if (b) {
 //				LogUtil.log("#### MemcacheClient.deleteCache(" + key + "),result="+ b +";");
 //			}
 		} catch (Exception e) {

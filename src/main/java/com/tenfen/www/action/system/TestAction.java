@@ -64,6 +64,8 @@ import com.tenfen.util.SendMailUtil;
 import com.tenfen.util.SftpClientUtil;
 import com.tenfen.util.StringUtil;
 import com.tenfen.util.Utils;
+import com.tenfen.util.encrypt.BASE64;
+import com.tenfen.util.encrypt.MD5;
 import com.tenfen.util.servlet.ServletRequestUtils;
 import com.tenfen.www.action.SimpleActionSupport;
 import com.tenfen.www.common.Constants;
@@ -98,6 +100,11 @@ import com.tenfen.www.service.system.ImsiMdnRelationManager;
 import com.tenfen.www.service.system.SystemConfigManager;
 import com.tenfen.www.service.system.VisitLogManager;
 import com.tenfen.www.service.system.VisitLogTmpManager;
+import com.tenfen.www.util.TokenService;
+import com.tenfen.www.util.TokenService.TokenParam;
+import com.tenfen.www.util.sendToBj.SendOpenToBJ;
+import com.tenfen.www.util.sendToBj.SendSmsToBJ;
+import com.tenfen.www.util.tyyd.Base64;
 
 public class TestAction extends SimpleActionSupport {
 
@@ -692,29 +699,6 @@ public class TestAction extends SimpleActionSupport {
 		return null;
 	}
 	
-	public String execute() {
-		TOpenOrder entity = openOrderDao.get(10953332);
-		MongoTOpenOrder mongoTOpenOrder = new MongoTOpenOrder();
-		mongoTOpenOrder.setImsi(entity.getImsi());
-		mongoTOpenOrder.setOrderId(entity.getOrderId());
-		mongoTOpenOrder.setOutTradeNo(entity.getOutTradeNo());
-		mongoTOpenOrder.setSellerId(entity.getSellerId());
-		mongoTOpenOrder.setAppId(entity.getAppId());
-		mongoTOpenOrder.setMerchantId(entity.getMerchantId());
-		mongoTOpenOrder.setSubject(entity.getSubject());
-		mongoTOpenOrder.setSenderNumber(entity.getSenderNumber());
-		mongoTOpenOrder.setMsgContent(entity.getMsgContent());
-		mongoTOpenOrder.setCreateTime(entity.getCreateTime());
-		mongoTOpenOrder.setFee(entity.getFee());
-		mongoTOpenOrder.setStatus(entity.getStatus());
-		mongoTOpenOrder.setPayPhone(entity.getPayPhone());
-		mongoTOpenOrder.setPayTime(entity.getPayTime());
-		mongoTOpenOrder.setProvince(entity.getProvince());
-		mongoTOpenOrder.setReduce(1);
-		mongoTOpenOrderDao.saveAndUpdate(mongoTOpenOrder);
-		return null;
-	}
-	
 	public class MongoOpenThread implements Runnable {
 		
 		private MongoTOpenOrder mongoTOpenOrder;
@@ -838,18 +822,29 @@ public class TestAction extends SimpleActionSupport {
 	
 	public static void main(String[] args) {
 		try {
-			JSONObject jsonObject = new JSONObject();
-			jsonObject.put("order_no", "123");
-			jsonObject.put("out_trade_no", "123");
-			jsonObject.put("fee", "100");
-			jsonObject.put("status", "3");
+			String orderId = System.currentTimeMillis()+"";
+			String gatewayCode = "13-100";
+			String productCode = "5-13-100";
+			List<TokenParam> queryParamList = new ArrayList<TokenParam>();
+			queryParamList.add(new TokenParam("gatewayCode",gatewayCode));
+			queryParamList.add(new TokenParam("orderId",orderId));
+			queryParamList.add(new TokenParam("paymentTime","20170807201717"));
+			queryParamList.add(new TokenParam("productCode",productCode));
+			queryParamList.add(new TokenParam("province", "浙江"));
+			queryParamList.add(new TokenParam("userId", "15372098311"));
 			
-			System.out.println(jsonObject.toString());
-			String res = HttpClientUtils.postJson("http://www.uuyooo.com/paycenter/bjten/woplusMixNotify.ashx", jsonObject.toString());
+			String sign = TokenService.buildToken(queryParamList, "10fen#$0sign!key");
+			
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("gatewayCode",gatewayCode);
+			map.put("orderId",orderId);
+			map.put("paymentTime","20170807201717");
+			map.put("productCode",productCode);
+			map.put("province", "浙江");
+			map.put("userId", "15372098311");
+			map.put("sign", sign);
+			String res = HttpClientUtils.simpleGetInvoke("http://fin.tenfen.com/tdmpbi/prototype/1", map);
 			System.out.println(res);
-//			String json = "{\"channel_no\":\"10660173\",\"content\":\"LZKMB#19#123\",\"fee\":\"200\",\"order_no\":\"3000097466709135502352241\",\"phone\":\"15300000000\",\"status\":\"3\"}";
-//			String res = HttpClientUtils.postJson("http://14.152.95.44:50/JSWT/RcvMo.sy", json);
-//			System.out.println(res);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -939,6 +934,148 @@ public class TestAction extends SimpleActionSupport {
 					openOrderManager.save(tOpenOrder);
 				}
 			}
+		}
+		return null;
+	}
+	
+//	public String executecmcctd() {
+//		try {
+//			String msgType = "UnsubscribeReq";
+//			String payCode = "300008371001";
+//			String appId = "600000008371";
+//			String appKey = "2FR0MTX42E6VTRWL";
+//
+//			File file = new File("/home/channel/phone.txt");
+//			List<String> list = FileUtils.readLines(file, "UTF-8");
+//			for (String phone : list) {
+//				String userMobile = BASE64.encode(phone.getBytes());
+//				String sign = MD5.getMD5(msgType+appId+appKey+userMobile);
+//				String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Request><MsgType>"+msgType+"</MsgType><AppID>"+appId+"</AppID><PayCode>"+payCode+"</PayCode><UserMobile>"+userMobile+"</UserMobile><Signature>"+sign.toUpperCase()+"</Signature></Request>";
+//				
+//				String res = HttpClientUtils.postJson("http://wap.dm.10086.cn/capability/capacc", xml);
+//				System.out.println(phone + ":" +res);
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		return null;
+//	}
+	
+	public String executeSendBj() {
+		try {
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.DATE, -1);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			//获取当日时间区间
+			SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
+			String startString = sdf.format(calendar.getTime()) + " 00:00:00";
+			Date startDate = sdfSql.parse(startString);
+			java.sql.Date start = new java.sql.Date(startDate.getTime());
+			
+			String endString = sdf.format(calendar.getTime()) + " 23:59:59";
+			Date endDate = sdfSql.parse(endString);
+			java.sql.Date end = new java.sql.Date(endDate.getTime());
+			
+			List<TOpenOrder> openlist = openOrderDao.getOrderList(start, end);
+			for (TOpenOrder entity : openlist) {
+				Integer sellerId = entity.getSellerId();
+				TOpenSeller openSeller = openSellerManager.get(sellerId);
+				Integer companyShow = openSeller.getCompanyShow();
+				if ("3".equals(entity.getStatus()) && companyShow==1) {
+					exe.execute(new SendOpenToBJ(entity));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	public String executeOpen() {
+		try {
+			//获取当日时间区间
+			SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
+			String startString = "2017-01-01 00:00:00";
+			Date startDate = sdfSql.parse(startString);
+			java.sql.Date start = new java.sql.Date(startDate.getTime());
+			
+			String endString = "2017-09-01 00:00:00";
+			Date endDate = sdfSql.parse(endString);
+			java.sql.Date end = new java.sql.Date(endDate.getTime());
+			
+			List<Integer> sellerIds = Arrays.asList(3,5,6,10,11,13,14,15,18,19,20,21,22,25,26,27,28,29,31,32);
+			for (Integer sellerId : sellerIds) {
+//				List<MongoTOpenOrder> list = openOrderManager.getOrderListFromMongo(sellerId, null, start, end);
+				Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(start).lt(end).and("status").is("3");
+				Query query = new Query(criteria);
+				List<MongoTOpenOrder> list = mongoTOpenOrderDao.findList(query);
+				int i = 0;
+				for (MongoTOpenOrder mongoTOpenOrder : list) {
+					Integer appId = mongoTOpenOrder.getAppId();
+					TOpenApp tOpenApp = openAppManager.getOpenAppByProperty("id", appId);
+					if (tOpenApp != null) {
+						//转化entity
+						TOpenOrder entity = new TOpenOrder();
+						entity.setOrderId(mongoTOpenOrder.getOrderId());
+						entity.setSellerId(sellerId);
+						entity.setAppId(appId);
+						entity.setFee(mongoTOpenOrder.getFee());
+						entity.setPayPhone(mongoTOpenOrder.getPayPhone());
+						entity.setPayTime(mongoTOpenOrder.getPayTime());
+						entity.setProvince(mongoTOpenOrder.getProvince());
+						exe.execute(new SendOpenToBJ(entity));
+						i++;
+					}
+				}
+				System.out.println("sellerId:"+sellerId+"发送的记录数为"+i);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public String execute() {
+		try {
+			//获取当日时间区间
+			SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
+			String startString = "2017-01-01 00:00:00";
+			Date startDate = sdfSql.parse(startString);
+			java.sql.Date start = new java.sql.Date(startDate.getTime());
+			
+			String endString = "2017-09-01 00:00:00";
+			Date endDate = sdfSql.parse(endString);
+			java.sql.Date end = new java.sql.Date(endDate.getTime());
+			
+			List<Integer> sellerIds = Arrays.asList(3,6,9,10,11,12,13,14,15,16,20);
+			for (Integer sellerId : sellerIds) {
+//				List<MongoTOpenOrder> list = openOrderManager.getOrderListFromMongo(sellerId, null, start, end);
+				Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(start).lt(end).and("status").is("3");
+				Query query = new Query(criteria);
+				List<MongoTSmsOrder> list = mongoTSmsOrderDao.findList(query);
+				int i = 0;
+				for (MongoTSmsOrder mongoTSmsOrder : list) {
+					Integer appId = mongoTSmsOrder.getAppId();
+					TSmsApp tSmsApp = smsAppManager.getSmsAppByProperty("id", appId);
+					if (tSmsApp != null) {
+						//转化entity
+						TSmsOrder entity = new TSmsOrder();
+						entity.setOrderId(mongoTSmsOrder.getOrderId());
+						entity.setSellerId(sellerId);
+						entity.setAppId(appId);
+						entity.setFee(mongoTSmsOrder.getFee());
+						entity.setPayPhone(mongoTSmsOrder.getPayPhone());
+						entity.setPayTime(mongoTSmsOrder.getPayTime());
+						entity.setProvince(mongoTSmsOrder.getProvince());
+						exe.execute(new SendSmsToBJ(entity));
+						i++;
+					}
+				}
+				System.out.println("sellerId:"+sellerId+"发送的记录数为"+i);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}

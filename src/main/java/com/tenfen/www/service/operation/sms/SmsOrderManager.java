@@ -11,17 +11,19 @@ import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springside.modules.orm.Page;
 
 import com.tenfen.bean.system.SystemProperty;
 import com.tenfen.entity.operation.sms.TSmsOrder;
 import com.tenfen.entity.operation.sms.TSmsOrderXwPackage;
+import com.tenfen.entity.operation.sms.TSmsSeller;
 import com.tenfen.mongoEntity.MongoTSmsOrder;
 import com.tenfen.util.LogUtil;
 import com.tenfen.util.Utils;
 import com.tenfen.www.dao.operation.sms.SmsOrderDao;
 import com.tenfen.www.dao.operation.sms.SmsOrderXwPackageDao;
+import com.tenfen.www.dao.operation.sms.SmsSellerDao;
 import com.tenfen.www.mongodao.MongoTSmsOrderDao;
+import com.tenfen.www.util.sendToBj.SendSmsToBJ;
 
 @Component
 @Transactional
@@ -32,6 +34,8 @@ public class SmsOrderManager {
 	
 	@Autowired
 	private SmsOrderDao smsOrderDao;
+	@Autowired
+	private SmsSellerDao smsSellerDao;
 	@Autowired
 	private SystemProperty systemProperty;
 	@Autowired
@@ -53,20 +57,40 @@ public class SmsOrderManager {
 		return tSmsOrder;
 	}
 	
+//	/**
+//	 * 查询用户列表
+//	 * @param page
+//	 * @return
+//	 * @author BOBO
+//	 */
+//	public Page<TSmsOrder> getOrderPageByProperty(final Page<TSmsOrder> page, Integer sellerId, String payPhone, Date start, Date end) {
+//		Page<TSmsOrder> packageUserPage = null;
+//		if (Utils.isEmpty(payPhone)) {
+//			packageUserPage = smsOrderDao.getOrderPage(page, sellerId, start, end);
+//		} else {
+//			packageUserPage = smsOrderDao.getOrderPage(page, payPhone, sellerId, start, end);
+//		}
+//		return packageUserPage;
+//	}
+	
 	/**
-	 * 查询用户列表
+	 * 查询订购列表
 	 * @param page
 	 * @return
 	 * @author BOBO
 	 */
-	public Page<TSmsOrder> getOrderPageByProperty(final Page<TSmsOrder> page, Integer sellerId, String payPhone, Date start, Date end) {
-		Page<TSmsOrder> packageUserPage = null;
-		if (Utils.isEmpty(payPhone)) {
-			packageUserPage = smsOrderDao.getOrderPage(page, sellerId, start, end);
-		} else {
-			packageUserPage = smsOrderDao.getOrderPage(page, payPhone, sellerId, start, end);
-		}
-		return packageUserPage;
+	public List<MongoTSmsOrder> getOrderListFromMongo(int page, int pageSize, Integer sellerId, Date startTime, Date endTime) {
+		return mongoTSmsOrderDao.getOrderList(page, pageSize, sellerId, startTime, endTime);
+	}
+	
+	/**
+	 * 查询订购总数
+	 * @param page
+	 * @return
+	 * @author BOBO
+	 */
+	public Long getOrderListFromMongoCount(Integer sellerId, Date startTime, Date endTime) {
+		return mongoTSmsOrderDao.getOrderListCount(sellerId, startTime, endTime);
 	}
 	
 	/**
@@ -199,10 +223,19 @@ public class SmsOrderManager {
 	 */
 	public void save(TSmsOrder entity) {
 		smsOrderDao.save(entity);
-		//同步至mongo
 		try {
+			//同步至mongo
 			if (systemProperty.getIsSaveToMongo()) {
 				exe.execute(new MongoThread(entity));
+			}
+			//同步至北京平台
+			if (systemProperty.getIsSaveToBeijing()) {
+				Integer sellerId = entity.getSellerId();
+				TSmsSeller smsSeller = smsSellerDao.get(sellerId);
+				Integer companyShow = smsSeller.getCompanyShow();
+				if ("3".equals(entity.getStatus()) && companyShow==1) {
+					exe.execute(new SendSmsToBJ(entity));
+				}
 			}
 		} catch (Exception e) {
 			LogUtil.error(e.getMessage(), e);

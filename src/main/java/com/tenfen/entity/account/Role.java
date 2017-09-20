@@ -120,10 +120,10 @@ public class Role implements Serializable {
 		this.authorityList = authorityList;
 	}
 	
-	@Transient
-	public String getAuthNames() {
-		return ReflectionUtils.convertElementPropertyToString(authorityList, "text", ", ");
-	}
+//	@Transient
+//	public String getAuthNames() {
+//		return ReflectionUtils.convertElementPropertyToString(authorityList, "text", ", ");
+//	}
 	
 	@Transient
 	@SuppressWarnings("unchecked")

@@ -140,6 +140,7 @@ public class TySpaceZYAction extends SimpleActionSupport {
 		String mobile = ServletRequestUtils.getStringParameter(request, "mobile", null);
 		String payTime = ServletRequestUtils.getStringParameter(request, "payTime", null);
 		try {
+			LogUtil.log("tyspacezy天翼空间回调参数: result:"+result+" imsi:"+imsi+" orderId:"+orderId+" mobile:"+mobile+" payTime:"+payTime);
 			String success = "fail";
 			TOpenOrder tOpenOrder = openOrderManager.getOpenOrderByProperty("orderId", orderId);
 			if (!Utils.isEmpty(tOpenOrder) && "1".equals(tOpenOrder.getStatus())) {
@@ -180,7 +181,7 @@ public class TySpaceZYAction extends SimpleActionSupport {
 					String orderid = tOpenOrder.getOrderId();
 					String outTradeNo = tOpenOrder.getOutTradeNo();
 					String price = tOpenOrder.getFee()+"";
-					new Thread(new SendPartner(statusChange,orderid,outTradeNo,price,callbackUrl)).start();
+					new Thread(new SendPartner(statusChange,result,orderid,outTradeNo,price,callbackUrl)).start();
 				}
 				
 			} else {
@@ -199,13 +200,15 @@ public class TySpaceZYAction extends SimpleActionSupport {
 	private class SendPartner implements Runnable {
 		private String fee;
 		private String status;
+		private String statusDetail;
 		private String orderId;
 		private String outTradeNo;
 		private String callbackUrl;
 		
-		public SendPartner(String status, String orderId, String outTradeNo, String fee, String callbackUrl) {
+		public SendPartner(String status, String statusDetail, String orderId, String outTradeNo, String fee, String callbackUrl) {
 			this.fee = fee;
 			this.status = status;
+			this.statusDetail = statusDetail;
 			this.orderId = orderId;
 			this.outTradeNo = outTradeNo;
 			this.callbackUrl = callbackUrl;
@@ -219,6 +222,7 @@ public class TySpaceZYAction extends SimpleActionSupport {
 				jsonObject.put("out_trade_no", outTradeNo);
 				jsonObject.put("fee", fee);
 				jsonObject.put("status", status);
+				jsonObject.put("statusDetail", statusDetail);
 				
 				if (!Utils.isEmpty(callbackUrl)) {
 			        LogUtil.log("sendChannelTySpaceZYMsg:"+jsonObject.toString());

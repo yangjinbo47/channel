@@ -382,12 +382,13 @@ public class DailyJob {
 			
 			
 			
-			String[] mailToList = new String[5];
+			String[] mailToList = new String[6];
 			mailToList[0] = "icy.wang@tenfen.com";
 			mailToList[1] = "yangjinbo48@sina.com";
 			mailToList[2] = "wang.kun@slxz.com.cn";
 			mailToList[3] = "gao.feng@tenfen.com";
 			mailToList[4] = "yan.qun@tenfen.com";
+			mailToList[5] = "sun.quanzhi@tenfen.com";
 			
 			//发送邮件
 			String mailTitle = sdf.format(calendar.getTime())+"云支付日报";

@@ -26,7 +26,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SimpleDateFormatSerializer;
 import com.tenfen.entity.operation.sms.TSmsApp;
-import com.tenfen.entity.operation.sms.TSmsOrder;
 import com.tenfen.entity.operation.sms.TSmsOrderConversionrate;
 import com.tenfen.entity.operation.sms.TSmsSeller;
 import com.tenfen.mongoEntity.MongoTSmsOrder;
@@ -76,19 +75,21 @@ public class SmsOrderAction extends SimpleActionSupport {
 				java.sql.Date start = new java.sql.Date(sdf.parse(startTime).getTime());
 				java.sql.Date end = new java.sql.Date(sdf.parse(endTime).getTime());
 				
-				Page<TSmsOrder> orderPage = new Page<TSmsOrder>();
-				//设置默认排序方式
-				orderPage.setPageSize(limit);
-				orderPage.setPageNo(page);
+//				Page<TSmsOrder> orderPage = new Page<TSmsOrder>();
+//				//设置默认排序方式
+//				orderPage.setPageSize(limit);
+//				orderPage.setPageNo(page);
 				
-				orderPage = smsOrderManager.getOrderPageByProperty(orderPage, sellerId, payPhone, start, end);
+//				orderPage = smsOrderManager.getOrderPageByProperty(orderPage, sellerId, payPhone, start, end);
+				List<MongoTSmsOrder> smsOrders = smsOrderManager.getOrderListFromMongo(page, limit, sellerId, start, end);
 				
-				long nums = orderPage.getTotalCount();
+				long nums = smsOrderManager.getOrderListFromMongoCount(sellerId, start, end);
+//				long nums = orderPage.getTotalCount();
 				StringBuilder jstr = new StringBuilder("{");
 				jstr.append("total:" + String.valueOf(nums) + ",");
 				jstr.append("orders:");
 
-				List<TSmsOrder> smsOrders = orderPage.getResult();
+//				List<TSmsOrder> smsOrders = orderPage.getResult();
 				jstr.append(JSON.toJSONString(smsOrders, config));
 				jstr.append("}");
 				StringUtil.printJson(response, jstr.toString());

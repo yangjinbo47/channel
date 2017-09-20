@@ -74,6 +74,19 @@ public class MongoTSmsOrderDao extends MongoGenDao<MongoTSmsOrder>{
 		return findList(query);
 	}
 	
+	public List<MongoTSmsOrder> getOrderList(int page, int pageSize, Integer sellerId, Date startTime, Date endTime) {
+		int start = (page - 1) * pageSize;
+		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime);
+		Query query = new Query(criteria);
+		return getPage(query, start, pageSize);
+	}
+	
+	public Long getOrderListCount(Integer sellerId, Date startTime, Date endTime) {
+		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime);
+		Query query = new Query(criteria);
+		return getPageCount(query);
+	}
+	
 	public List<MongoTSmsOrder> getOrderListByPhone(int page, int pageSize, String phone) {
 		int start = (page - 1) * pageSize;
 		Criteria criteria = Criteria.where("pay_phone").is(phone);

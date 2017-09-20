@@ -658,7 +658,7 @@ public class PackAction extends SimpleActionSupport {
 			
 			//判断产品全国是否到量
 			if (ret) {
-				Integer limit = tyu.getLimit(packageId);
+				Integer limit = tyu.getProductLimit(packageId);
 				if (limit == null) {
 					limit = 0;
 				}
