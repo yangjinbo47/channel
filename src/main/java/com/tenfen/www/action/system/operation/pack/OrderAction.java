@@ -35,7 +35,6 @@ import com.tenfen.util.StringUtil;
 import com.tenfen.util.Utils;
 import com.tenfen.util.servlet.ServletRequestUtils;
 import com.tenfen.www.action.SimpleActionSupport;
-import com.tenfen.www.common.Constants;
 import com.tenfen.www.service.operation.pack.OrderManager;
 import com.tenfen.www.service.operation.pack.PackageManager;
 import com.tenfen.www.service.operation.pack.PushSellerManager;
@@ -262,59 +261,102 @@ public class OrderAction extends SimpleActionSupport {
 				end = new java.sql.Date(endDate.getTime());
 			}
 			
+//			JSONArray jsonArray = new JSONArray();
+//			Integer userType = (Integer)getSessionAttribute(Constants.OPERATOR_TYPE);
+//			List<TPushSeller> pushSellerList = pushSellerManager.findAllPushSellerList(userType);
+//			for (TPushSeller tPushSeller : pushSellerList) {
+//				int sellerId = tPushSeller.getId();
+//				String sellerName = tPushSeller.getName();
+//				
+//				Map<Integer, String> succMap = orderManager.mapReducePushIds(sellerId, start, end, 3);
+//				for (Integer pushId : succMap.keySet()) {
+//					Integer mo = 0;
+//					Integer moQc = 0;
+//					Integer mr = 0;
+//					Integer fee = 0;
+//					String zhl = null;
+//					String resultStr = succMap.get(pushId);
+//					if (resultStr != null) {
+//						JSONObject jsonObject = JSONObject.parseObject(resultStr);
+//						mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
+//						moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
+//						mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
+//						fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
+//						fee = fee / 100;//转化以元为单位
+//					}
+//					
+//					//转化率
+//					float f = 0;
+//					if (mr == 0) {
+//						f = 0;
+//					} else {
+//						f = (float)mr/moQc;
+//					}
+//					DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
+//					if (f == 0) {
+//						zhl = "0%";
+//					} else {
+//						zhl = df.format(f*100) + "%";//返回的是String类型的
+//					}
+//					
+//					PushPackage pushPackage = packageManager.get(pushId);
+//					int companyShow = pushPackage.getCompanyShow();
+//					if (companyShow == userType || userType.equals(Constants.USER_TYPE.ALL.getValue())) {					
+//						String packageName = pushPackage.getPackageName();
+//						
+//						JSONObject report = new JSONObject();
+//						report.put("sellerId", sellerId);
+//						report.put("sellerName", sellerName);
+//						report.put("pushId", pushId);
+//						report.put("packageName", packageName);
+//						report.put("mo", mo);
+//						report.put("moQc", moQc);
+//						report.put("mr", mr);
+//						report.put("fee", fee);
+//						report.put("zhl", zhl);
+//						jsonArray.add(report);
+//					}
+//				}
+//			}
+			
 			JSONArray jsonArray = new JSONArray();
-			Integer userType = (Integer)getSessionAttribute(Constants.OPERATOR_TYPE);
-			List<TPushSeller> pushSellerList = pushSellerManager.findAllPushSellerList(userType);
-			for (TPushSeller tPushSeller : pushSellerList) {
-				int sellerId = tPushSeller.getId();
+			Map<Integer, String> reduceMap = orderManager.mapReduceSeller(start, end);
+			for (Integer sellerId : reduceMap.keySet()) {
+				String resultJson = reduceMap.get(sellerId);
+				JSONObject jsonObject = JSONObject.parseObject(resultJson);
+				Integer mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
+				Integer moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
+				Integer mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
+				Integer fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
+				fee = fee / 100;//转化以元为单位
+				
+				//转化率
+				float f = 0;
+				if (mr == 0) {
+					f = 0;
+				} else {
+					f = (float)mr/moQc;
+				}
+				DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
+				String zhl = null;
+				if (f == 0) {
+					zhl = "0%";
+				} else {
+					zhl = df.format(f*100) + "%";//返回的是String类型的
+				}
+				
+				TPushSeller tPushSeller = pushSellerManager.get(sellerId);
 				String sellerName = tPushSeller.getName();
 				
-				Map<Integer, String> succMap = orderManager.mapReducePushIds(sellerId, start, end, 3);
-				for (Integer pushId : succMap.keySet()) {
-					Integer mo = 0;
-					Integer moQc = 0;
-					Integer mr = 0;
-					Integer fee = 0;
-					String zhl = null;
-					String resultStr = succMap.get(pushId);
-					if (resultStr != null) {
-						JSONObject jsonObject = JSONObject.parseObject(resultStr);
-						mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
-						moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
-						mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
-						fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
-						fee = fee / 100;//转化以元为单位
-					}
-					
-					//转化率
-					float f = 0;
-					if (mr == 0) {
-						f = 0;
-					} else {
-						f = (float)mr/moQc;
-					}
-					DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
-					if (f == 0) {
-						zhl = "0%";
-					} else {
-						zhl = df.format(f*100) + "%";//返回的是String类型的
-					}
-					
-					PushPackage pushPackage = packageManager.get(pushId);
-					String packageName = pushPackage.getPackageName();
-					
-					JSONObject report = new JSONObject();
-					report.put("sellerId", sellerId);
-					report.put("sellerName", sellerName);
-					report.put("pushId", pushId);
-					report.put("packageName", packageName);
-					report.put("mo", mo);
-					report.put("moQc", moQc);
-					report.put("mr", mr);
-					report.put("fee", fee);
-					report.put("zhl", zhl);
-					jsonArray.add(report);
-				}
+				JSONObject report = new JSONObject();
+				report.put("sellerId", sellerId);
+				report.put("sellerName", sellerName);
+				report.put("mo", mo);
+				report.put("moQc", moQc);
+				report.put("mr", mr);
+				report.put("fee", fee);
+				report.put("zhl", zhl);
+				jsonArray.add(report);
 			}
 			
 			StringBuilder jstr = new StringBuilder("{");
@@ -331,9 +373,135 @@ public class OrderAction extends SimpleActionSupport {
 	List<String> provinceList = Arrays.asList(new String[] { "河北", "山西", "辽宁", "吉林", "黑龙江", "江苏", "浙江", "安徽", "福建", "江西", "山东", 
 	"河南", "湖北", "湖南", "广东", "海南", "四川", "贵州", "云南", "陕西", "甘肃", "青海", "内蒙古", "广西", "西藏", "宁夏", "新疆", "北京", "天津", "上海", "重庆",null});
 			
+	//具体包的省份详情
+//	public void provinceDetail() {
+//		Integer sellerId = ServletRequestUtils.getIntParameter(request, "sellerId", 1);
+//		Integer pushId = ServletRequestUtils.getIntParameter(request, "pushId", -1);
+//		String startTime = ServletRequestUtils.getStringParameter(request, "startTime", null);
+//		String endTime = ServletRequestUtils.getStringParameter(request, "endTime", null);
+//		
+//		try {
+//			java.sql.Date start = null;
+//			java.sql.Date end = null;
+//			if (startTime != null && endTime != null) {
+//				startTime = startTime.replace("T", " ");
+//				endTime = endTime.replace("T", " ");
+//				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//				start = new java.sql.Date(sdf.parse(startTime).getTime());
+//				
+//				Calendar calendar = Calendar.getInstance();
+//				calendar.setTime(sdf.parse(endTime));
+//				calendar.add(Calendar.DATE, 1);
+//				end = new java.sql.Date(calendar.getTimeInMillis());
+//			} else {
+//				Calendar calendar = Calendar.getInstance();
+//				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//				//获取当日时间区间
+//				SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
+//				String startString = sdf.format(calendar.getTime()) + " 00:00:00";
+//				Date startDate = sdfSql.parse(startString);
+//				start = new java.sql.Date(startDate.getTime());
+//				
+//				calendar.add(Calendar.DATE, 1);
+//				String endString = sdf.format(calendar.getTime()) + " 00:00:00";
+//				Date endDate = sdfSql.parse(endString);
+//				end = new java.sql.Date(endDate.getTime());
+//			}
+//			
+//			JSONArray jsonArray = new JSONArray();
+//			
+//			Map<String, String> map = orderManager.mapReduceProvince(sellerId, pushId, start, end);
+//			Integer moQuanguo = 0;
+//			Integer moQuanguoQc = 0;
+//			Integer mrQuanguo = 0;
+//			Integer feeQuanguo = 0;
+//			String zhlQuanguo = null;
+//			
+//			List<PackageDailyBean> packageDailyBeans = new ArrayList<PackageDailyBean>();
+//			for (String province : provinceList) {
+//				Integer mo = 0;
+//				Integer moQc = 0;
+//				Integer mr = 0;
+//				Integer fee = 0;
+//				String zhl = null;
+//				String resultStr = map.get(province);
+//				if (resultStr != null) {
+//					JSONObject jsonObject = JSONObject.parseObject(resultStr);
+//					mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
+//					moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
+//					mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
+//					fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
+//					fee = fee / 100;//转化以元为单位
+//				}
+//				//转化率
+//				float f = 0;
+//				if (mr == 0) {
+//					f = 0;
+//				} else {
+//					f = (float)mr/moQc;
+//				}
+//				DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
+//				if (f == 0) {
+//					zhl = "0%";
+//				} else {
+//					zhl = df.format(f*100) + "%";//返回的是String类型的
+//				}
+//				
+//				JSONObject report = new JSONObject();
+//				if (province == null) {
+//					province = "其他";
+//				}
+//				report.put("province", province);
+//				report.put("mo", mo);
+//				report.put("moQc", moQc);
+//				report.put("mr", mr);
+//				report.put("fee", fee);
+//				report.put("zhl", zhl);
+//				jsonArray.add(report);
+//				
+//				moQuanguo += mo;
+//				moQuanguoQc += moQc;
+//				mrQuanguo += mr;
+//				feeQuanguo += fee;
+//			}
+//			//全国转化率
+//			DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
+//			float quanguof = 0;
+//			if (mrQuanguo == 0) {
+//				quanguof = 0;
+//			} else {
+//				quanguof = (float)mrQuanguo/moQuanguoQc;
+//			}
+//			if (quanguof == 0) {
+//				zhlQuanguo = "0%";
+//			} else {
+//				zhlQuanguo = df.format(quanguof*100) + "%";//返回的是String类型的
+//			}
+//			Collections.sort(packageDailyBeans);//按转化率排序
+//			
+//			JSONObject report = new JSONObject();
+//			report.put("province", "全国");
+//			report.put("mo", moQuanguo);
+//			report.put("moQc", moQuanguoQc);
+//			report.put("mr", mrQuanguo);
+//			report.put("fee", feeQuanguo);
+//			report.put("zhl", zhlQuanguo);
+//			jsonArray.add(report);
+//			
+//			StringBuilder jstr = new StringBuilder("{");
+//			jstr.append("total:" + jsonArray.size() + ",");
+//			jstr.append("reports:");
+//			jstr.append(jsonArray.toJSONString());
+//			jstr.append("}");
+//			StringUtil.printJson(response, jstr.toString());
+//		} catch (Exception e) {
+//			LogUtil.error(e.getMessage(), e);
+//		}
+//	}
+	
+	//整个渠道的省份详情
 	public void provinceDetail() {
 		Integer sellerId = ServletRequestUtils.getIntParameter(request, "sellerId", 1);
-		Integer pushId = ServletRequestUtils.getIntParameter(request, "pushId", -1);
 		String startTime = ServletRequestUtils.getStringParameter(request, "startTime", null);
 		String endTime = ServletRequestUtils.getStringParameter(request, "endTime", null);
 		
@@ -365,14 +533,9 @@ public class OrderAction extends SimpleActionSupport {
 				end = new java.sql.Date(endDate.getTime());
 			}
 			
-//			PushPackage pushPackage = packageManager.get(pushId);
-//			String packageName = pushPackage.getPackageName();
-//			TPushSeller tPushSeller = pushSellerManager.get(sellerId);
-//			String sellerName = tPushSeller.getName();
-			
 			JSONArray jsonArray = new JSONArray();
 			
-			Map<String, String> map = orderManager.mapReduceProvince(sellerId, pushId, start, end);
+			Map<String, String> map = orderManager.mapReduceProvince(sellerId, start, end);
 			Integer moQuanguo = 0;
 			Integer moQuanguoQc = 0;
 			Integer mrQuanguo = 0;
@@ -409,15 +572,6 @@ public class OrderAction extends SimpleActionSupport {
 					zhl = df.format(f*100) + "%";//返回的是String类型的
 				}
 				
-//				PackageDailyBean packageDailyBean = new PackageDailyBean();
-//				packageDailyBean.setProvince(province);
-//				packageDailyBean.setMo(mo);
-//				packageDailyBean.setMoQc(moQc);
-//				packageDailyBean.setMr(mr);
-//				packageDailyBean.setFee(fee);
-//				packageDailyBean.setZhlf(f);
-//				packageDailyBean.setZhl(zhl);
-//				packageDailyBeans.add(packageDailyBean);
 				JSONObject report = new JSONObject();
 				if (province == null) {
 					province = "其他";

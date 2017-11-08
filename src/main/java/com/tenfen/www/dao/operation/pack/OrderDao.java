@@ -173,12 +173,12 @@ public class OrderDao extends CustomHibernateDao<TOrder, Long>{
 	public List<TOrder> getOrderList(Integer sellerId, Date startTime, Date endTime) {
 		List<TOrder> list = null;
 		try {
-			String hql = "select t from TOrder t where t.createTime > :startTime and t.createTime < :endTime and t.sellerId=:sellerId";
+			String hql = "select t from TOrder t where t.createTime > :startTime and t.createTime < :endTime and t.sellerId=:sellerId and t.status=:status";
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("startTime", startTime);
 			map.put("endTime", endTime);
 			map.put("sellerId", sellerId);
-//			map.put("status", Constants.T_ORDER_STATUS.SUCCESS.getValue());
+			map.put("status", Constants.T_ORDER_STATUS.SUCCESS.getValue());
 			
 			list = find(hql, map);
 		} catch (Exception e) {

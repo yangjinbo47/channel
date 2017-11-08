@@ -26,7 +26,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SimpleDateFormatSerializer;
 import com.tenfen.entity.operation.open.TOpenApp;
-import com.tenfen.entity.operation.open.TOpenOrder;
 import com.tenfen.entity.operation.open.TOpenOrderConversionrate;
 import com.tenfen.entity.operation.open.TOpenSeller;
 import com.tenfen.mongoEntity.MongoTOpenOrder;

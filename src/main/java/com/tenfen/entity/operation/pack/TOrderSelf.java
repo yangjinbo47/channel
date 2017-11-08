@@ -21,6 +21,7 @@ public class TOrderSelf implements Serializable{
 	private String outTradeNo;
 	private String imsi;
 	private String phoneNum;
+	private Integer sellerId;
 	private Integer pushId;
 	private Integer fee;
 	private Integer status;
@@ -129,6 +130,15 @@ public class TOrderSelf implements Serializable{
 		this.province = province;
 	}
 	
+	@Column(name = "SELLER_ID")
+	public Integer getSellerId() {
+		return sellerId;
+	}
+
+	public void setSellerId(Integer sellerId) {
+		this.sellerId = sellerId;
+	}
+	
 	@Column(name = "PUSH_ID")
 	public Integer getPushId() {
 		return pushId;
@@ -138,6 +148,7 @@ public class TOrderSelf implements Serializable{
 		this.pushId = pushId;
 	}
 
+	@Column(name = "Fee")
 	public Integer getFee() {
 		return fee;
 	}

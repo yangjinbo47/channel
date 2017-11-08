@@ -23,15 +23,17 @@ Ext.define('CMS.view.operation.pack.OrderReportManager', {
 		            metadata.tdAttr = 'data-qtip="' + value + '"';
 		            return value;
 		        }
-			}, {
-				text : '包名',
-				dataIndex : 'packageName',
-				flex : 2,
-				renderer : function(value, metadata) {
-		            metadata.tdAttr = 'data-qtip="' + value + '"';
-		            return value;
-		        }
-			}, {
+			}
+//			, {
+//				text : '包名',
+//				dataIndex : 'packageName',
+//				flex : 2,
+//				renderer : function(value, metadata) {
+//		            metadata.tdAttr = 'data-qtip="' + value + '"';
+//		            return value;
+//		        }
+//			}
+			, {
 				text : '请求MO',
 				dataIndex : 'mo',
 				flex : 1

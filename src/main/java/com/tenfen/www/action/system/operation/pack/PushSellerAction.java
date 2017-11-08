@@ -183,18 +183,22 @@ public class PushSellerAction extends SimpleActionSupport{
 	 */
 	public void packagesOfSeller() {
 		Integer sellerId = ServletRequestUtils.getIntParameter(request, "sellerId", -1);
+		Integer userType = (Integer)getSessionAttribute(Constants.OPERATOR_TYPE);
 
 		TPushSeller tPushSeller = pushSellerManager.getEntity(sellerId);
 		
 		List<PushPackage> pushPackages = new ArrayList<PushPackage>();
 		List<TPushSellerPackages> tPushSellerPackageList = tPushSeller.getSellerPackages();
 		for (TPushSellerPackages tPushSellerPackages : tPushSellerPackageList) {
-			PushPackage pushPackage = new PushPackage();
-			pushPackage.setId(tPushSellerPackages.getPushPackage().getId());
-			pushPackage.setPackageName(tPushSellerPackages.getPushPackage().getPackageName());
-			pushPackage.setPackageLimit(tPushSellerPackages.getPackageLimit());
-			pushPackage.setPackageToday(tPushSellerPackages.getPackageToday());
-			pushPackages.add(pushPackage);
+			int companyShow = tPushSellerPackages.getPushPackage().getCompanyShow();
+			if (companyShow == userType || userType.equals(Constants.USER_TYPE.ALL.getValue())) {
+				PushPackage pushPackage = new PushPackage();
+				pushPackage.setId(tPushSellerPackages.getPushPackage().getId());
+				pushPackage.setPackageName(tPushSellerPackages.getPushPackage().getPackageName());
+				pushPackage.setPackageLimit(tPushSellerPackages.getPushPackage().getPackageLimit());
+				pushPackage.setPackageToday(tPushSellerPackages.getPushPackage().getPackageToday());
+				pushPackages.add(pushPackage);
+			}
 		}
 		int size = pushPackages.size();
 

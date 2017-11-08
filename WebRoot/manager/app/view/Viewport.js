@@ -113,7 +113,8 @@ Ext.define('CMS.view.Viewport', {
 				Ext.Ajax.request({
 					url : '../www/logout.action',
 					success : function() {
-						location = (Ext.isIE10 || Ext.isIE10m || Ext.isIE10p)? './' : '../manager/index.jsp';
+//						location = (Ext.isIE10 || Ext.isIE10m || Ext.isIE10p)? './' : '../manager/index.jsp';
+						location = "../";
 					},
 					failure : function() {
 						Ext.Msg.show({

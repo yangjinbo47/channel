@@ -312,7 +312,8 @@ Ext.define('CMS.LoginForm', {
 		            	Ext.util.Cookies.set('cookie_operator_name',action.result.operatorname);
 		            	Ext.util.Cookies.set('cookie_operator_id',action.result.operatorid);
 		            	this.onSuccessLogin();
-		                window.location.href = "main.jsp";
+//		                window.location.href = "main.jsp";
+		            	window.location.href = (Ext.isIE10 || Ext.isIE10m || Ext.isIE10p) ? 'main.jsp' : './manager/main.jsp';
 		            },
 		            failure : function(form, action) {
 		            	loadMask.hide();

@@ -77,6 +77,15 @@ public class PackAction extends SimpleActionSupport {
 			String outTradeNo = ServletRequestUtils.getStringParameter(request, "out_trade_no", "");
 			String phone = ServletRequestUtils.getStringParameter(request, "phone", null);
 			
+			//代码屏蔽
+//			boolean cut = true;
+//			if (cut) {
+//				json.put("code", "2000");
+//				json.put("msg", "基地返回码错误");
+//				StringUtil.printJson(response, json.toString());
+//				return;
+//			}
+			
 			comingKey = "coming_"+imsi;
 			Boolean coming = (Boolean)mc.getCache(comingKey);
 			if (!Utils.isEmpty(coming)) {
@@ -153,11 +162,11 @@ public class PackAction extends SimpleActionSupport {
 				}
 				
 				//加入自有包
-//				TPushSellerPackages self = new TPushSellerPackages();
-//				PushPackage selfPackage = packageManager.get(481);
-//				self.setPushSeller(pushSeller);
-//				self.setPushPackage(selfPackage);
-//				sellerPackages.add(0,self);
+				TPushSellerPackages self = new TPushSellerPackages();
+				PushPackage selfPackage = packageManager.get(481);
+				self.setPushSeller(pushSeller);
+				self.setPushPackage(selfPackage);
+				sellerPackages.add(0,self);
 				
 				for (TPushSellerPackages tPushSellerPackages : sellerPackages) {
 					PushPackage pushPackage = tPushSellerPackages.getPushPackage();
@@ -185,8 +194,8 @@ public class PackAction extends SimpleActionSupport {
 										code = "1";
 										if (481 == pushPackage.getId()) {
 											json.put("price", 800);
-											json.put("package_name", "友诺精品图文包");
-											json.put("monthProductId", "60749771");
+											json.put("package_name", "aaa");
+											json.put("monthProductId", "24283263");
 										} else {
 											json.put("price", pushPackage.getPrice());
 											json.put("package_name", pushPackage.getPackageName());
@@ -603,9 +612,10 @@ public class PackAction extends SimpleActionSupport {
 			ICacheClient mc = cacheFactory.getCommonCacheClient();
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 			
+			double rate = new Random().nextDouble();
 			PushPackage pushPackage = tPushSellerPackages.getPushPackage();
-			if (481 == pushPackage.getId()) {
-				return true;
+			if (481 == pushPackage.getId() && rate > 0.2) {
+				return false;
 			}
 			//该渠道设置的包推广量是否到达
 			if (tPushSellerPackages.getPackageLimit() != -1) {//不限量

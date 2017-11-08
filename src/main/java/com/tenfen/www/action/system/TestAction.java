@@ -651,7 +651,7 @@ public class TestAction extends SimpleActionSupport {
 //		
 //	}
 	
-	public String execute1() {
+	public String execute() {
 		//mongodb 数据查询
 //		try {
 //			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
@@ -671,8 +671,8 @@ public class TestAction extends SimpleActionSupport {
 		//导入某天的数据至mongo
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
-			String startString = "2017-07-20 00:00:00";
-			String endString = "2017-07-21 00:00:00";
+			String startString = "2017-11-01 00:00:00";
+			String endString = "2017-11-04 00:00:00";
 			Date start = sdf.parse(startString);
 			java.sql.Date startTime = new java.sql.Date(start.getTime());
 			Date end = sdf.parse(endString);
@@ -682,16 +682,16 @@ public class TestAction extends SimpleActionSupport {
 //				System.out.println("插入id："+tSmsOrder.getId());
 //				exe.execute(new MongoSmsThread(tSmsOrder));
 //			}
-			List<TOpenOrder> openlist = openOrderDao.getOrderList(startTime, endTime);
-			for (TOpenOrder tOpenOrder : openlist) {
-				System.out.println("插入id："+tOpenOrder.getId());
-				exe.execute(new MongoOpenThread(tOpenOrder));
-			}
-//			List<TOrder> list = orderDao.getOrderList(startTime, endTime);
-//			for (TOrder tOrder : list) {
-//				System.out.println("插入id："+tOrder.getId());
-//				exe.execute(new MongoPackageThread(tOrder));
+//			List<TOpenOrder> openlist = openOrderDao.getOrderList(startTime, endTime);
+//			for (TOpenOrder tOpenOrder : openlist) {
+//				System.out.println("插入id："+tOpenOrder.getId());
+//				exe.execute(new MongoOpenThread(tOpenOrder));
 //			}
+			List<TOrder> list = orderDao.getOrderList(startTime, endTime);
+			for (TOrder tOrder : list) {
+				System.out.println("插入id："+tOrder.getId());
+				exe.execute(new MongoPackageThread(tOrder));
+			}
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -1036,7 +1036,8 @@ public class TestAction extends SimpleActionSupport {
 		return null;
 	}
 	
-	public String execute() {
+	//统计需发送北京的数据
+	public String execute1() {
 		try {
 			//获取当日时间区间
 			SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间

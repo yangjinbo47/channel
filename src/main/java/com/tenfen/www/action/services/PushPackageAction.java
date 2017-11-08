@@ -330,6 +330,9 @@ public class PushPackageAction extends SimpleActionSupport {
 				JSONObject monthJson = JSONObject.parseObject(monthStr);
 				Integer monthCount = monthJson.getInteger("succ");
 				Integer monthFee = monthJson.getInteger("fee")/100;
+				if (monthCount == 0) {
+					continue;
+				}
 				
 				Integer dayCount = 0;
 				Integer dayFee = 0;
