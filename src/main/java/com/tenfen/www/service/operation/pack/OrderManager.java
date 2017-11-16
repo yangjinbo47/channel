@@ -180,6 +180,15 @@ public class OrderManager {
 		return entity;
 	}
 	
+	public TOrder findByPhoneAndPushId(String phone, Integer pushId){
+		List<TOrder> list = orderDao.findByPhoneAndPushId(phone, pushId);
+		TOrder entity = null;
+		if (list.size() > 0) {
+			entity = list.get(0);
+		}
+		return entity;
+	}
+	
 	/**
 	 * 删除包月信息
 	 * @param id
@@ -230,9 +239,6 @@ public class OrderManager {
 	 * @param endTime
 	 * @return
 	 */
-//	public Long getCountByNameAndChannel(Integer pushId, String channel, Date startTime, Date endTime) {
-//		return orderDao.getCountByNameAndChannel(pushId, channel, startTime, endTime);
-//	}
 	public Long getCountBySellerIdandPushId(Integer sellerId, Integer pushId, Date startTime, Date endTime) {
 		return orderDao.getCountBySellerIdandPushId(sellerId, pushId, startTime, endTime);
 	}
@@ -257,40 +263,20 @@ public class OrderManager {
 	 * @param status
 	 * @return
 	 */
-//	public Map<String, String> mapReduceProvince(String channel, Date startTime, Date endTime, Integer status) {
-//		return mongoTOrderDao.mapReduceProvince(channel, startTime, endTime, status);
-//	}
-	public Map<String, String> mapReduceProvince(Integer sellerId, Date startTime, Date endTime) {
+	public Map<String, Map<Integer, String>> mapReduceProvince(Integer sellerId, Date startTime, Date endTime) {
 		return mongoTOrderDao.mapReduceProvince(sellerId, startTime, endTime);
 	}
-	public Map<String, String> mapReduceProvince(Integer sellerId, Integer pushId, Date startTime, Date endTime) {
+	/**
+	 * 渠道各包分省推广量
+	 * @param channel
+	 * @param startTime
+	 * @param endTime
+	 * @param status
+	 * @return
+	 */
+	public Map<String, Map<Integer, String>> mapReduceProvince(Integer sellerId, Integer pushId, Date startTime, Date endTime) {
 		return mongoTOrderDao.mapReduceProvince(sellerId, pushId, startTime, endTime);
 	}
-	
-	/**
-	 * 根据省份mapreduce出用户数
-	 * @param channel
-	 * @param province
-	 * @param startTime
-	 * @param endTime
-	 * @param status
-	 * @return
-	 */
-//	public Map<String, String> mapReduceUserByProvince(String channel, String province, Date startTime, Date endTime, Integer status) {
-//		return mongoTOrderDao.mapReduceUserByProvince(channel, province, startTime, endTime, status);
-//	}
-	
-	/**
-	 * 包月包分省推广量
-	 * @param channel
-	 * @param startTime
-	 * @param endTime
-	 * @param status
-	 * @return
-	 */
-//	public Map<String, String> mapReduceProvince(String channel, Integer pushId, Date startTime, Date endTime, Integer status) {
-//		return mongoTOrderDao.mapReduceProvince(channel, pushId, startTime, endTime, status);
-//	}
 	
 	/**
 	 * mapreduce出渠道数据（mo、mo去重量、mr、信息费）
@@ -298,7 +284,7 @@ public class OrderManager {
 	 * @param endTime
 	 * @return
 	 */
-	public Map<Integer, String> mapReduceSeller(Date startTime, Date endTime) {
+	public Map<Integer, Map<Integer, String>> mapReduceSeller(Date startTime, Date endTime) {
 		return mongoTOrderDao.mapReduceSeller(startTime, endTime);
 	}
 }

@@ -205,7 +205,7 @@ public class PushPackageAction extends SimpleActionSupport {
 			java.sql.Date start = new java.sql.Date(sdf.parse(startTime).getTime());
 			java.sql.Date end = new java.sql.Date(sdf.parse(endTime).getTime());
 			
-			Map<String, String> map = orderManager.mapReduceProvince(sellerId, start, end);
+			Map<String, Map<Integer, String>> reduceMap = orderManager.mapReduceProvince(sellerId, start, end);
 			Integer moQuanguo = 0;
 			Integer moQuanguoQc = 0;
 			Integer mrQuanguo = 0;
@@ -219,14 +219,32 @@ public class PushPackageAction extends SimpleActionSupport {
 				Integer mr = 0;
 				Integer fee = 0;
 				String zhl = null;
-				String resultStr = map.get(province);
-				if (resultStr != null) {
-					JSONObject jsonObject = JSONObject.parseObject(resultStr);
-					mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
-					moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
-					mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
-					fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
+				Map<Integer, String> statusMap = reduceMap.get(province);
+				if (statusMap != null) {
+					String noPayStr = statusMap == null ? null : statusMap.get(1);
+					String succStr = statusMap == null ? null : statusMap.get(3);
+					String failStr = statusMap == null ? null : statusMap.get(4);
+					JSONObject noPayJson = JSONObject.parseObject(noPayStr);
+					Integer noPayMo = noPayJson == null ? 0 : noPayJson.getInteger("count");
+					Integer noPayMoQc = noPayJson == null ? 0 : noPayJson.getInteger("user");
+					JSONObject succJson = JSONObject.parseObject(succStr);
+					Integer succMo = succJson == null ? 0 : succJson.getInteger("count");
+					Integer succMoQc = succJson == null ? 0 : succJson.getInteger("user");
+					JSONObject failJson = JSONObject.parseObject(failStr);
+					Integer failMo = failJson == null ? 0 : failJson.getInteger("count");
+					Integer failMoQc = failJson == null ? 0 : failJson.getInteger("user");
+					
+					mo = noPayMo + succMo + failMo;//请求总数
+					moQc = noPayMoQc + succMoQc + failMoQc;//mo去重
+					mr = succMoQc;//mr
+					fee = succJson == null ? 0 : succJson.getInteger("fee");//成功信息费
 					fee = fee / 100;//转化以元为单位
+//					JSONObject jsonObject = JSONObject.parseObject(resultStr);
+//					mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
+//					moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
+//					mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
+//					fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
+//					fee = fee / 100;//转化以元为单位
 				}
 				//转化率
 				float f = 0;
@@ -328,7 +346,7 @@ public class PushPackageAction extends SimpleActionSupport {
 				String packageName = pushPackage.getPackageName();
 				String monthStr = succ_month.get(pushId);
 				JSONObject monthJson = JSONObject.parseObject(monthStr);
-				Integer monthCount = monthJson.getInteger("succ");
+				Integer monthCount = monthJson.getInteger("user") == null ? 0 : monthJson.getInteger("user");
 				Integer monthFee = monthJson.getInteger("fee")/100;
 				if (monthCount == 0) {
 					continue;
@@ -339,7 +357,7 @@ public class PushPackageAction extends SimpleActionSupport {
 				String dayStr = succ_day.get(pushId);
 				if (!Utils.isEmpty(dayStr)) {
 					JSONObject dayJson = JSONObject.parseObject(dayStr);
-					dayCount = dayJson.getInteger("succ");
+					dayCount = dayJson.getInteger("user");
 					dayFee = dayJson.getInteger("fee")/100;
 				}
 				//计算每个包多少钱

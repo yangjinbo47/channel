@@ -424,9 +424,9 @@ public class SmsOrderManager {
 	 * @param endTime
 	 * @return
 	 */
-	public Long mapReduceUserCount(Integer sellerId, Integer appId, Date startTime, Date endTime) {
-		return mongoTSmsOrderDao.mapReduceUserCount(sellerId, appId, startTime, endTime);
-	}
+//	public Long mapReduceUserCount(Integer sellerId, Integer appId, Date startTime, Date endTime) {
+//		return mongoTSmsOrderDao.mapReduceUserCount(sellerId, appId, startTime, endTime);
+//	}
 	
 	/**
 	 * mapreduce 根据sellerId，appId 查询出成功用户数
@@ -436,9 +436,9 @@ public class SmsOrderManager {
 	 * @param endTime
 	 * @return
 	 */
-	public Long mapReduceSuccUserCount(Integer sellerId, Integer appId, Date startTime, Date endTime) {
-		return mongoTSmsOrderDao.mapReduceSuccUserCount(sellerId, appId, startTime, endTime);
-	}
+//	public Long mapReduceSuccUserCount(Integer sellerId, Integer appId, Date startTime, Date endTime) {
+//		return mongoTSmsOrderDao.mapReduceSuccUserCount(sellerId, appId, startTime, endTime);
+//	}
 	
 	/**
 	 * 查询时间点之前的订购列表

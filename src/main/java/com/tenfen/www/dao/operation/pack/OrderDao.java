@@ -219,18 +219,32 @@ public class OrderDao extends CustomHibernateDao<TOrder, Long>{
 		return list;
 	}
 	
-	public List<TOrder> getOrderListByChannel(String channel) {
+//	public List<TOrder> getOrderListByChannel(String channel) {
+//		List<TOrder> list = null;
+//		try {
+//			String hql = "select t from TOrder t where t.channel=:channel";
+//			Map<String, Object> map = new HashMap<String, Object>();
+//			map.put("channel", channel);
+//			
+//			list = find(hql, map);
+//		} catch (Exception e) {
+//			LogUtil.error(e.getMessage(), e);
+//		}
+//		return list;
+//	}
+	
+	public List<TOrder> findByPhoneAndPushId(String phone, Integer pushId) {
 		List<TOrder> list = null;
 		try {
-			String hql = "select t from TOrder t where t.channel=:channel";
 			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("channel", channel);
+			map.put("pushId", pushId);
+			map.put("phone", phone);
 			
+			String hql = "select t from TOrder t where t.phoneNum=:phone and t.pushId=:pushId order by t.id desc";
 			list = find(hql, map);
 		} catch (Exception e) {
 			LogUtil.error(e.getMessage(), e);
 		}
 		return list;
 	}
-	
 }

@@ -13,8 +13,10 @@ public class SmsDailyBean{
 	private Integer noPay;//未支付
 	private Integer fee;//金额
 	private Integer feeReduce;//金额（扣量后）
-	private Long userNum;//用户数
-	private Long userSuccNum;//成功用户数
+//	private Long userNum;//用户数
+//	private Long userSuccNum;//成功用户数
+	private Integer userNum;//用户数
+	private Integer userSuccNum;//成功用户数
 	private String rate;//转化率
 	private String reqRate;//请求转化率
 	
@@ -104,19 +106,34 @@ public class SmsDailyBean{
 		this.feeReduce = feeReduce;
 	}
 
-	public Long getUserNum() {
+//	public Long getUserNum() {
+//		return userNum;
+//	}
+//
+//	public void setUserNum(Long userNum) {
+//		this.userNum = userNum;
+//	}
+//
+//	public Long getUserSuccNum() {
+//		return userSuccNum;
+//	}
+//
+//	public void setUserSuccNum(Long userSuccNum) {
+//		this.userSuccNum = userSuccNum;
+//	}
+	public Integer getUserNum() {
 		return userNum;
 	}
 
-	public void setUserNum(Long userNum) {
+	public void setUserNum(Integer userNum) {
 		this.userNum = userNum;
 	}
 
-	public Long getUserSuccNum() {
+	public Integer getUserSuccNum() {
 		return userSuccNum;
 	}
 
-	public void setUserSuccNum(Long userSuccNum) {
+	public void setUserSuccNum(Integer userSuccNum) {
 		this.userSuccNum = userSuccNum;
 	}
 
@@ -135,5 +152,5 @@ public class SmsDailyBean{
 	public void setReqRate(String reqRate) {
 		this.reqRate = reqRate;
 	}
-	
+
 }

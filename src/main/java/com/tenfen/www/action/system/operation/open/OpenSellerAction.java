@@ -330,6 +330,174 @@ public class OpenSellerAction extends SimpleActionSupport{
 		}
 	}
 	
+//	public void report() {
+//		Integer sellerId = ServletRequestUtils.getIntParameter(request, "sellerId", -1);
+//		String startTime = ServletRequestUtils.getStringParameter(request, "startTime", null);
+//		String endTime = ServletRequestUtils.getStringParameter(request, "endTime", null);
+//		
+//		try {
+//			java.sql.Date start = null;
+//			java.sql.Date end = null;
+//			if (startTime != null && endTime != null) {
+//				startTime = startTime.replace("T", " ");
+//				endTime = endTime.replace("T", " ");
+//				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//				start = new java.sql.Date(sdf.parse(startTime).getTime());
+//				
+//				Calendar calendar = Calendar.getInstance();
+//				calendar.setTime(sdf.parse(endTime));
+//				calendar.add(Calendar.DATE, 1);
+//				end = new java.sql.Date(calendar.getTimeInMillis());
+//			} else {
+//				Calendar calendar = Calendar.getInstance();
+//				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//				//获取当日时间区间
+//				SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
+//				String startString = sdf.format(calendar.getTime()) + " 00:00:00";
+//				Date startDate = sdfSql.parse(startString);
+//				start = new java.sql.Date(startDate.getTime());
+//				
+//				calendar.add(Calendar.DATE, 1);
+//				String endString = sdf.format(calendar.getTime()) + " 00:00:00";
+//				Date endDate = sdfSql.parse(endString);
+//				end = new java.sql.Date(endDate.getTime());
+//			}
+//			
+//			//mapreduce
+//			Map<Integer, String> noPayMap = openOrderManager.mapReduceAppIds(sellerId, start, end, "1", null);
+//			Map<Integer, String> succPayMap = openOrderManager.mapReduceAppIds(sellerId, start, end, "3", null);
+//			Map<Integer, String> failPayMap = openOrderManager.mapReduceAppIds(sellerId, start, end, "4", null);
+//			Map<Integer, String> allStatusMap = new HashMap<Integer, String>();
+//			allStatusMap.putAll(noPayMap);
+//			allStatusMap.putAll(succPayMap);
+//			allStatusMap.putAll(failPayMap);
+//			Map<Integer, String> succPayReduceMap = openOrderManager.mapReduceAppIds(sellerId, start, end, "3", 0);//扣量后的成功数据
+//			
+//			JSONArray jsonArray = new JSONArray();
+//			for (Integer appId : allStatusMap.keySet()) {
+//				Integer noPayInt = null;
+//				if (noPayMap.size() == 0) {
+//					noPayInt = 0;
+//				} else {
+//					JSONObject noPayJson = JSONObject.parseObject(noPayMap.get(appId));
+//					noPayInt = noPayJson == null ? 0 : noPayJson.getInteger("count");//未支付请求数
+//					if (noPayInt == null) {
+//						noPayInt = 0;
+//					}
+//				}
+//				Integer failInt = null;
+//				if (failPayMap.size() == 0) {
+//					failInt = 0;
+//				} else {
+//					JSONObject failPayJson = JSONObject.parseObject(failPayMap.get(appId));
+//					failInt = failPayJson == null ? 0 : failPayJson.getInteger("count");//失败支付请求数
+//					if (failInt == null) {
+//						failInt = 0;
+//					}
+//				}
+//				Integer succInt = null;
+//				Integer feeInt = null;
+//				if (succPayMap.size() == 0) {
+//					succInt = 0;
+//					feeInt = 0;
+//				} else {						
+//					JSONObject succPayJson = JSONObject.parseObject(succPayMap.get(appId));
+//					succInt = succPayJson == null ? 0 : succPayJson.getInteger("count");//成功支付请求数
+//					if (succInt == null) {
+//						succInt = 0;
+//					}
+//					feeInt = succPayJson == null ? 0 : succPayJson.getInteger("fee");//成功计费金额
+//					if (feeInt == null) {
+//						feeInt = 0;
+//					}
+//					feeInt = feeInt/100;//fee转化成单位元
+//				}
+//				Integer succReduceInt = null;
+//				Integer feeReduceInt = null;
+//				if (succPayReduceMap.size() == 0) {
+//					succReduceInt = 0;
+//					feeReduceInt = 0;
+//				} else {						
+//					JSONObject succPayJson = JSONObject.parseObject(succPayReduceMap.get(appId));
+//					succReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("count");//成功支付请求数（扣量后）
+//					if (succReduceInt == null) {
+//						succReduceInt = 0;
+//					}
+//					feeReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("fee");//成功计费金额（扣量后）
+//					if (feeReduceInt == null) {
+//						feeReduceInt = 0;
+//					}
+//					feeReduceInt = feeReduceInt/100;//fee转化成单位元
+//				}
+//				
+//				Integer orderReqInt = noPayInt+failInt+succInt;
+//				Long users_num = openOrderManager.mapReduceUserCount(sellerId, appId, start, end);
+//				Long users_succ_num = openOrderManager.mapReduceSuccUserCount(sellerId, appId, start, end);
+//				
+//				DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
+//				//mr/mo转化率
+//				float f = 0;
+//				if (succInt == 0) {
+//					f = 0;
+//				} else {
+//					f = (float)succInt/(succInt+failInt);
+//				}
+//				if (f != 0) {
+//					f = (float)(Math.round(f*1000))/1000;
+//				}
+//				String fString = "0%";
+//				if (f == 0) {
+//					fString = "0%";
+//				} else {
+//					fString = df.format(f*100) + "%";//返回的是String类型的
+//				}
+//				//mr/req请求转化率
+//				float reqf = 0;
+//				if (succInt == 0) {
+//					reqf = 0;
+//				} else {
+//					reqf = (float)succInt/orderReqInt;
+//				}
+//				if (reqf != 0) {
+//					reqf = (float)(Math.round(reqf*1000))/1000;
+//				}
+//				String reqfString = "0%";
+//				if (reqf == 0) {
+//					reqfString = "0%";
+//				} else {
+//					reqfString = df.format(reqf*100) + "%";//返回的是String类型的
+//				}
+//				
+//				TOpenApp tOpenApp = openAppManager.get(appId);
+//				String appName = tOpenApp.getName();
+//				
+//				JSONObject report = new JSONObject();
+//				report.put("appName", appName);
+//				report.put("req", orderReqInt);
+//				report.put("succ", succInt);
+//				report.put("succReduce", succReduceInt);
+//				report.put("fail", failInt);
+//				report.put("noPay", noPayInt);
+//				report.put("fee", feeInt);
+//				report.put("feeReduce", feeReduceInt);
+//				report.put("users_num", users_num);
+//				report.put("users_succ_num", users_succ_num);
+//				report.put("rate", fString);
+//				report.put("reqRate", reqfString);
+//				jsonArray.add(report);
+//			}//end for map
+//			
+//			StringBuilder jstr = new StringBuilder("{");
+//			jstr.append("total:" + jsonArray.size() + ",");
+//			jstr.append("report:");
+//			jstr.append(jsonArray.toJSONString());
+//			jstr.append("}");
+//			StringUtil.printJson(response, jstr.toString());
+//		} catch (Exception e) {
+//			LogUtil.error(e.getMessage(), e);
+//		}
+//	}
+	
 	public void report() {
 		Integer sellerId = ServletRequestUtils.getIntParameter(request, "sellerId", -1);
 		String startTime = ServletRequestUtils.getStringParameter(request, "startTime", null);
@@ -371,68 +539,81 @@ public class OpenSellerAction extends SimpleActionSupport{
 			allStatusMap.putAll(noPayMap);
 			allStatusMap.putAll(succPayMap);
 			allStatusMap.putAll(failPayMap);
-			Map<Integer, String> succPayReduceMap = openOrderManager.mapReduceAppIds(sellerId, start, end, "3", 0);//扣量后的成功数据
 			
 			JSONArray jsonArray = new JSONArray();
 			for (Integer appId : allStatusMap.keySet()) {
 				Integer noPayInt = null;
+				Integer noPayUserInt = null;
 				if (noPayMap.size() == 0) {
 					noPayInt = 0;
+					noPayUserInt = 0;
 				} else {
 					JSONObject noPayJson = JSONObject.parseObject(noPayMap.get(appId));
 					noPayInt = noPayJson == null ? 0 : noPayJson.getInteger("count");//未支付请求数
 					if (noPayInt == null) {
 						noPayInt = 0;
 					}
+					noPayUserInt = noPayJson == null ? 0 : noPayJson.getInteger("user");//未支付用户数
+					if (noPayUserInt == null) {
+						noPayUserInt = 0;
+					}
 				}
 				Integer failInt = null;
+				Integer failUserInt = null;
 				if (failPayMap.size() == 0) {
 					failInt = 0;
+					failUserInt = 0;
 				} else {
 					JSONObject failPayJson = JSONObject.parseObject(failPayMap.get(appId));
 					failInt = failPayJson == null ? 0 : failPayJson.getInteger("count");//失败支付请求数
 					if (failInt == null) {
 						failInt = 0;
 					}
+					failUserInt = failPayJson == null ? 0 : failPayJson.getInteger("user");//失败用户数
+					if (failUserInt == null) {
+						failUserInt = 0;
+					}
 				}
 				Integer succInt = null;
+				Integer succUserInt = null;
 				Integer feeInt = null;
+				Integer succReduceInt = null;
+				Integer feeReduceInt = null;
 				if (succPayMap.size() == 0) {
 					succInt = 0;
+					succUserInt = 0;
 					feeInt = 0;
-				} else {						
+					succReduceInt = 0;
+					feeReduceInt = 0;
+				} else {
 					JSONObject succPayJson = JSONObject.parseObject(succPayMap.get(appId));
 					succInt = succPayJson == null ? 0 : succPayJson.getInteger("count");//成功支付请求数
 					if (succInt == null) {
 						succInt = 0;
 					}
+					succUserInt = succPayJson == null ? 0 : succPayJson.getInteger("user");//成功用户数
+					if (succUserInt == null) {
+						succUserInt = 0;
+					}
 					feeInt = succPayJson == null ? 0 : succPayJson.getInteger("fee");//成功计费金额
 					if (feeInt == null) {
 						feeInt = 0;
 					}
-					feeInt = feeInt/100;//fee转化成单位元
-				}
-				Integer succReduceInt = null;
-				Integer feeReduceInt = null;
-				if (succPayReduceMap.size() == 0) {
-					succReduceInt = 0;
-					feeReduceInt = 0;
-				} else {						
-					JSONObject succPayJson = JSONObject.parseObject(succPayReduceMap.get(appId));
-					succReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("count");//成功支付请求数（扣量后）
+					succReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("countReduce");//成功支付请求数(扣)
 					if (succReduceInt == null) {
 						succReduceInt = 0;
 					}
-					feeReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("fee");//成功计费金额（扣量后）
+					feeReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("feeReduce");//成功计费金额
 					if (feeReduceInt == null) {
 						feeReduceInt = 0;
 					}
-					feeReduceInt = feeReduceInt/100;//fee转化成单位元
+					feeInt = feeInt/100;//fee转化成单位元
+					feeReduceInt = feeReduceInt/100;
 				}
 				
 				Integer orderReqInt = noPayInt+failInt+succInt;
-				Long users_num = openOrderManager.mapReduceUserCount(sellerId, appId, start, end);
-				Long users_succ_num = openOrderManager.mapReduceSuccUserCount(sellerId, appId, start, end);
+				Integer users_num = noPayUserInt + failUserInt + succUserInt;
+				Integer users_succ_num = succUserInt;
 				
 				DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
 				//mr/mo转化率

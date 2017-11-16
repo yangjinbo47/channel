@@ -95,23 +95,61 @@ public class MongoTOrderDao extends MongoGenDao<MongoTOrder>{
 	 * @param endTime
 	 * @return
 	 */
+//	public Map<Integer, String> mapReducePushIds(Integer sellerId, Date startTime, Date endTime, Integer status) {
+//		Map<Integer, String> returnMap = new HashMap<Integer, String>();
+//		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime);
+//		Query query = new Query(criteria);
+//		//count:总数    user：用户数    succ：成功数
+//		String map = "function() {emit(this.push_id, {count:1,user:1,succ:1,fee:this.fee,imsis:this.imsi,status:this.status});}";
+//		String reduce = "function(key, values) {"
+//				+ "var total = 0,succfee = 0,mr = 0;"
+//				+ "var temp = new Array();"
+//				+ "var imsis = new Array;"
+//				+ "for(var i=0;i<values.length;i++){"
+//				+ "total += values[i].count;"
+//				+ "imsis=imsis.concat(values[i].imsis);"
+//				+ "if("+status+" == values[i].status){"
+//				+ "mr += values[i].succ;"
+//				+ "succfee += values[i].fee;"
+//				+ "}"
+//				+ "}"
+//				//imsis去重
+//				+ "imsis.sort();"
+//				+ "for(i = 0; i < imsis.length; i++) {"
+//				+ "if(imsis[i] == imsis[i+1]) {continue;}"
+//				+ "temp[temp.length]=imsis[i];"
+//				+ "}"
+//				+ "return {count:total, user:temp.length, succ:mr, fee:succfee, imsis:imsis, status:"+status+"};"
+//				+ "}";
+//		MapReduceResults<MongoTOrder> r = mongoTemplate.mapReduce(query, "t_order", map, reduce, MongoTOrder.class);
+//		DBObject dbObject = r.getRawResults();
+//		JSONArray jsonArray = JSONArray.parseArray(String.valueOf(dbObject.get("results")));
+//		for (int i = 0; i < jsonArray.size(); i++) {
+//			JSONObject o = (JSONObject)jsonArray.get(i);
+//			JSONObject countObj = (JSONObject)o.get("value");
+//			JSONObject returnJson = new JSONObject();
+//			returnJson.put("count", countObj.getInteger("count"));
+//			returnJson.put("user", countObj.getInteger("user"));
+//			returnJson.put("succ", countObj.getInteger("succ"));
+//			returnJson.put("fee", countObj.getInteger("fee"));
+//			returnMap.put(o.getInteger("_id"), returnJson.toString());
+//		}
+//		return returnMap;
+//	}
 	public Map<Integer, String> mapReducePushIds(Integer sellerId, Date startTime, Date endTime, Integer status) {
 		Map<Integer, String> returnMap = new HashMap<Integer, String>();
-		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime);
+		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("status").is(status).and("create_time").gt(startTime).lt(endTime);
 		Query query = new Query(criteria);
 		//count:总数    user：用户数    succ：成功数
-		String map = "function() {emit(this.push_id, {count:1,user:1,succ:1,fee:this.fee,imsis:this.imsi,status:this.status});}";
+		String map = "function() {emit(this.push_id, {count:1,user:1,fee:this.fee,imsi:this.imsi});}";
 		String reduce = "function(key, values) {"
-				+ "var total = 0,succfee = 0,mr = 0;"
+				+ "var total = 0,amount = 0;"
 				+ "var temp = new Array();"
 				+ "var imsis = new Array;"
 				+ "for(var i=0;i<values.length;i++){"
 				+ "total += values[i].count;"
-				+ "imsis=imsis.concat(values[i].imsis);"
-				+ "if("+status+" == values[i].status){"
-				+ "mr += values[i].succ;"
-				+ "succfee += values[i].fee;"
-				+ "}"
+				+ "imsis=imsis.concat(values[i].imsi);"
+				+ "amount += values[i].fee;"
 				+ "}"
 				//imsis去重
 				+ "imsis.sort();"
@@ -119,7 +157,7 @@ public class MongoTOrderDao extends MongoGenDao<MongoTOrder>{
 				+ "if(imsis[i] == imsis[i+1]) {continue;}"
 				+ "temp[temp.length]=imsis[i];"
 				+ "}"
-				+ "return {count:total, user:temp.length, succ:mr, fee:succfee, imsis:imsis, status:"+status+"};"
+				+ "return {count:total, user:temp.length, fee:amount, imsi:imsis};"
 				+ "}";
 		MapReduceResults<MongoTOrder> r = mongoTemplate.mapReduce(query, "t_order", map, reduce, MongoTOrder.class);
 		DBObject dbObject = r.getRawResults();
@@ -130,29 +168,26 @@ public class MongoTOrderDao extends MongoGenDao<MongoTOrder>{
 			JSONObject returnJson = new JSONObject();
 			returnJson.put("count", countObj.getInteger("count"));
 			returnJson.put("user", countObj.getInteger("user"));
-			returnJson.put("succ", countObj.getInteger("succ"));
 			returnJson.put("fee", countObj.getInteger("fee"));
 			returnMap.put(o.getInteger("_id"), returnJson.toString());
 		}
 		return returnMap;
 	}
 	
-	public Map<String, String> mapReduceProvince(Integer sellerId, Date startTime, Date endTime) {
-		Map<String, String> returnMap = new HashMap<String, String>();
+	public Map<String, Map<Integer, String>> mapReduceProvince(Integer sellerId, Date startTime, Date endTime) {
+		Map<String, Map<Integer, String>> returnMap = new HashMap<String, Map<Integer, String>>();
+		Map<Integer, String> statusMap = new HashMap<Integer, String>();
 		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime);;
 		Query query = new Query(criteria);
-		String map = "function() {emit(this.province, {count:1,user:1,succ:1,fee:this.fee,imsis:this.imsi,status:this.status});}";
+		String map = "function() {emit({province:this.province,status:this.status}, {count:1,user:1,fee:this.fee,imsi:this.imsi});}";
 		String reduce = "function(key, values) {"
-				+ "var total = 0,succfee = 0,mr = 0;"
+				+ "var total = 0,amount = 0;"
 				+ "var temp = new Array();"
 				+ "var imsis = new Array;"
 				+ "for(var i=0;i<values.length;i++){"
 				+ "total += values[i].count;"
-				+ "imsis=imsis.concat(values[i].imsis);"
-				+ "if(3 == values[i].status){"
-				+ "mr += values[i].succ;"
-				+ "succfee += values[i].fee;"
-				+ "}"
+				+ "amount += values[i].fee;"
+				+ "imsis=imsis.concat(values[i].imsi);"
 				+ "}"
 				//imsis去重
 				+ "imsis.sort();"
@@ -160,40 +195,44 @@ public class MongoTOrderDao extends MongoGenDao<MongoTOrder>{
 				+ "if(imsis[i] == imsis[i+1]) {continue;}"
 				+ "temp[temp.length]=imsis[i];"
 				+ "}"
-				+ "return {count:total, user:temp.length, succ:mr, fee:succfee, imsis:imsis, status:3};"
+				+ "return {count:total, user:temp.length, fee:amount, imsi:imsis};"
 				+ "}";
 		MapReduceResults<MongoTOrder> r = mongoTemplate.mapReduce(query, "t_order", map, reduce, MongoTOrder.class);
 		DBObject dbObject = r.getRawResults();
 		JSONArray jsonArray = JSONArray.parseArray(String.valueOf(dbObject.get("results")));
 		for (int i = 0; i < jsonArray.size(); i++) {
 			JSONObject o = (JSONObject)jsonArray.get(i);
+			JSONObject mapJson = (JSONObject)o.get("_id");
+			String province = mapJson.getString("province");
+			
+			Integer status = mapJson.getInteger("status");
 			JSONObject countObj = (JSONObject)o.get("value");
 			JSONObject returnJson = new JSONObject();
 			returnJson.put("count", countObj.getInteger("count"));
 			returnJson.put("user", countObj.getInteger("user"));
-			returnJson.put("succ", countObj.getInteger("succ"));
 			returnJson.put("fee", countObj.getInteger("fee"));
-			returnMap.put(o.getString("_id"), returnJson.toString());
+			
+			statusMap = returnMap.get(province) == null ? new HashMap<Integer, String>() : returnMap.get(province);
+			statusMap.put(status, returnJson.toString());
+			returnMap.put(province, statusMap);
 		}
 		return returnMap;
 	}
 	
-	public Map<String, String> mapReduceProvince(Integer sellerId, Integer pushId, Date startTime, Date endTime) {
-		Map<String, String> returnMap = new HashMap<String, String>();
+	public Map<String, Map<Integer, String>> mapReduceProvince(Integer sellerId, Integer pushId, Date startTime, Date endTime) {
+		Map<String, Map<Integer, String>> returnMap = new HashMap<String, Map<Integer, String>>();
+		Map<Integer, String> statusMap = new HashMap<Integer, String>();
 		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("push_id").is(pushId).and("create_time").gt(startTime).lt(endTime);;
 		Query query = new Query(criteria);
-		String map = "function() {emit(this.province, {count:1,user:1,succ:1,fee:this.fee,imsis:this.imsi,status:this.status});}";
+		String map = "function() {emit({province:this.province,status:this.status}, {count:1,user:1,fee:this.fee,imsi:this.imsi});}";
 		String reduce = "function(key, values) {"
-				+ "var total = 0,succfee = 0,mr = 0;"
+				+ "var total = 0,amount = 0;"
 				+ "var temp = new Array();"
 				+ "var imsis = new Array;"
 				+ "for(var i=0;i<values.length;i++){"
 				+ "total += values[i].count;"
-				+ "imsis=imsis.concat(values[i].imsis);"
-				+ "if(3 == values[i].status){"
-				+ "mr += values[i].succ;"
-				+ "succfee += values[i].fee;"
-				+ "}"
+				+ "amount += values[i].fee;"
+				+ "imsis=imsis.concat(values[i].imsi);"
 				+ "}"
 				//imsis去重
 				+ "imsis.sort();"
@@ -201,20 +240,26 @@ public class MongoTOrderDao extends MongoGenDao<MongoTOrder>{
 				+ "if(imsis[i] == imsis[i+1]) {continue;}"
 				+ "temp[temp.length]=imsis[i];"
 				+ "}"
-				+ "return {count:total, user:temp.length, succ:mr, fee:succfee, imsis:imsis, status:3};"
+				+ "return {count:total, user:temp.length, fee:amount, imsi:imsis};"
 				+ "}";
 		MapReduceResults<MongoTOrder> r = mongoTemplate.mapReduce(query, "t_order", map, reduce, MongoTOrder.class);
 		DBObject dbObject = r.getRawResults();
 		JSONArray jsonArray = JSONArray.parseArray(String.valueOf(dbObject.get("results")));
 		for (int i = 0; i < jsonArray.size(); i++) {
 			JSONObject o = (JSONObject)jsonArray.get(i);
+			JSONObject mapJson = (JSONObject)o.get("_id");
+			String province = mapJson.getString("province");
+			
+			Integer status = mapJson.getInteger("status");
 			JSONObject countObj = (JSONObject)o.get("value");
 			JSONObject returnJson = new JSONObject();
 			returnJson.put("count", countObj.getInteger("count"));
 			returnJson.put("user", countObj.getInteger("user"));
-			returnJson.put("succ", countObj.getInteger("succ"));
 			returnJson.put("fee", countObj.getInteger("fee"));
-			returnMap.put(o.getString("_id"), returnJson.toString());
+			
+			statusMap = returnMap.get(province) == null ? new HashMap<Integer, String>() : returnMap.get(province);
+			statusMap.put(status, returnJson.toString());
+			returnMap.put(province, statusMap);
 		}
 		return returnMap;
 	}
@@ -225,23 +270,21 @@ public class MongoTOrderDao extends MongoGenDao<MongoTOrder>{
 	 * @param endTime
 	 * @return
 	 */
-	public Map<Integer, String> mapReduceSeller(Date startTime, Date endTime) {
-		Map<Integer, String> returnMap = new HashMap<Integer, String>();
+	public Map<Integer, Map<Integer, String>> mapReduceSeller(Date startTime, Date endTime) {
+		Map<Integer, Map<Integer, String>> returnMap = new HashMap<Integer, Map<Integer, String>>();
+		Map<Integer, String> statusMap = new HashMap<Integer, String>();
 		Criteria criteria = Criteria.where("create_time").gt(startTime).lt(endTime);
 		Query query = new Query(criteria);
-		//count:总数    user：用户数    succ：成功数
-		String map = "function() {emit(this.seller_id, {count:1,user:1,succ:1,fee:this.fee,imsis:this.imsi,status:this.status});}";
+		//count:总数    user：用户数  
+		String map = "function() {emit({seller_id:this.seller_id,status:this.status}, {count:1,user:1,fee:this.fee,imsi:this.imsi});}";
 		String reduce = "function(key, values) {"
-				+ "var total = 0,succfee = 0,mr = 0;"
+				+ "var total = 0,amount = 0;"
 				+ "var temp = new Array();"
 				+ "var imsis = new Array;"
 				+ "for(var i=0;i<values.length;i++){"
 				+ "total += values[i].count;"
-				+ "imsis=imsis.concat(values[i].imsis);"
-				+ "if(3 == values[i].status){"
-				+ "mr += values[i].succ;"
-				+ "succfee += values[i].fee;"
-				+ "}"
+				+ "amount += values[i].fee;"
+				+ "imsis=imsis.concat(values[i].imsi);"
 				+ "}"
 				//imsis去重
 				+ "imsis.sort();"
@@ -249,20 +292,26 @@ public class MongoTOrderDao extends MongoGenDao<MongoTOrder>{
 				+ "if(imsis[i] == imsis[i+1]) {continue;}"
 				+ "temp[temp.length]=imsis[i];"
 				+ "}"
-				+ "return {count:total, user:temp.length, succ:mr, fee:succfee, imsis:imsis, status:3};"
+				+ "return {count:total, user:temp.length, fee:amount, imsi:imsis};"
 				+ "}";
 		MapReduceResults<MongoTOrder> r = mongoTemplate.mapReduce(query, "t_order", map, reduce, MongoTOrder.class);
 		DBObject dbObject = r.getRawResults();
 		JSONArray jsonArray = JSONArray.parseArray(String.valueOf(dbObject.get("results")));
 		for (int i = 0; i < jsonArray.size(); i++) {
 			JSONObject o = (JSONObject)jsonArray.get(i);
+			JSONObject mapJson = (JSONObject)o.get("_id");
+			Integer sellerId = mapJson.getInteger("seller_id");
+			
+			Integer status = mapJson.getInteger("status");
 			JSONObject countObj = (JSONObject)o.get("value");
 			JSONObject returnJson = new JSONObject();
 			returnJson.put("count", countObj.getInteger("count"));
 			returnJson.put("user", countObj.getInteger("user"));
-			returnJson.put("succ", countObj.getInteger("succ"));
 			returnJson.put("fee", countObj.getInteger("fee"));
-			returnMap.put(o.getInteger("_id"), returnJson.toString());
+			
+			statusMap = returnMap.get(sellerId) == null ? new HashMap<Integer, String>() : returnMap.get(sellerId);
+			statusMap.put(status, returnJson.toString());
+			returnMap.put(sellerId, statusMap);
 		}
 		return returnMap;
 	}

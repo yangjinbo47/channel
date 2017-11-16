@@ -5,9 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.mapreduce.GroupBy;
 import org.springframework.data.mongodb.core.mapreduce.GroupByResults;
 import org.springframework.data.mongodb.core.mapreduce.MapReduceCounts;
+import org.springframework.data.mongodb.core.mapreduce.MapReduceOptions;
 import org.springframework.data.mongodb.core.mapreduce.MapReduceResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -18,8 +21,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import com.tenfen.mongoEntity.MongoTSmsOrder;
+import com.tenfen.util.LogUtil;
+import com.tenfen.util.Utils;
 
 @Component
 public class MongoTSmsOrderDao extends MongoGenDao<MongoTSmsOrder>{
@@ -214,21 +222,31 @@ public class MongoTSmsOrderDao extends MongoGenDao<MongoTSmsOrder>{
 	 */
 //	public Map<Integer, String> mapReduceAppIds(Integer sellerId, Date startTime, Date endTime, String status, Integer reduce) {
 //		Map<Integer, String> returnMap = new HashMap<Integer, String>();
-//		Criteria criteria = null;
 //		if (reduce == null) {
-//			criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status);
-//		} else {
-//			criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status).and("reduce").is(reduce);
+//			reduce = 0;
 //		}
+//		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status);
 //		Query query = new Query(criteria);
-//		String map = "function() {emit(this.app_id, {count:1,fee:this.fee});}";
+//		String map = "function() {emit(this.app_id, {count:1,user:1,fee:this.fee,feeReduce:0,imsis:this.imsi,reduce:this.reduce});}";
 //		String reduceStr = "function(key, values) {"
-//				+ "var total = 0,sumfee = 0;"
+//				+ "var total = 0, sumfee = 0, sumfeeReduce = 0;"
+//				+ "var temp = new Array();"
+//				+ "var imsis = new Array;"
 //				+ "for(var i=0;i<values.length;i++){"
 //				+ "total += values[i].count;"
+//				+ "imsis=imsis.concat(values[i].imsis);"
 //				+ "sumfee += values[i].fee;"
+//				+ "if("+reduce+" == values[i].reduce){"
+//				+ "sumfeeReduce += values[i].fee;"
 //				+ "}"
-//				+ "return {count:total,fee:sumfee};"
+//				+ "}"
+//				//imsis去重
+//				+ "imsis.sort();"
+//				+ "for(i = 0; i < imsis.length; i++) {"
+//				+ "if(imsis[i] == imsis[i+1]) {continue;}"
+//				+ "temp[temp.length]=imsis[i];"
+//				+ "}"
+//				+ "return {count:total,user:temp.length,fee:sumfee,feeReduce:sumfeeReduce,imsis:imsis,reduce:"+reduce+"};"
 //				+ "}";
 //		MapReduceResults<MongoTSmsOrder> r = mongoTemplate.mapReduce(query, "t_sms_order", map, reduceStr, MongoTSmsOrder.class);
 //		DBObject dbObject = r.getRawResults();
@@ -238,51 +256,81 @@ public class MongoTSmsOrderDao extends MongoGenDao<MongoTSmsOrder>{
 //			JSONObject countObj = (JSONObject)o.get("value");
 //			JSONObject returnJson = new JSONObject();
 //			returnJson.put("count", countObj.getInteger("count"));
+//			returnJson.put("user", countObj.getInteger("user"));
 //			returnJson.put("fee", countObj.getInteger("fee"));
+//			returnJson.put("feeReduce", countObj.getInteger("feeReduce"));
 //			returnMap.put(o.getInteger("_id"), returnJson.toString());
 //		}
 //		return returnMap;
 //	}
 	public Map<Integer, String> mapReduceAppIds(Integer sellerId, Date startTime, Date endTime, String status, Integer reduce) {
 		Map<Integer, String> returnMap = new HashMap<Integer, String>();
-		if (reduce == null) {
-			reduce = 0;
-		}
-		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status);
-		Query query = new Query(criteria);
-		String map = "function() {emit(this.app_id, {count:1,user:1,fee:this.fee,feeReduce:0,imsis:this.imsi,reduce:this.reduce});}";
-		String reduceStr = "function(key, values) {"
-				+ "var total = 0, sumfee = 0, sumfeeReduce = 0;"
-				+ "var temp = new Array();"
-				+ "var imsis = new Array;"
-				+ "for(var i=0;i<values.length;i++){"
-				+ "total += values[i].count;"
-				+ "imsis=imsis.concat(values[i].imsis);"
-				+ "sumfee += values[i].fee;"
-				+ "if("+reduce+" == values[i].reduce){"
-				+ "sumfeeReduce += values[i].fee;"
-				+ "}"
-				+ "}"
-				//imsis去重
-				+ "imsis.sort();"
-				+ "for(i = 0; i < imsis.length; i++) {"
-				+ "if(imsis[i] == imsis[i+1]) {continue;}"
-				+ "temp[temp.length]=imsis[i];"
-				+ "}"
-				+ "return {count:total,user:temp.length,fee:sumfee,feeReduce:sumfeeReduce,imsis:imsis,reduce:"+reduce+"};"
-				+ "}";
-		MapReduceResults<MongoTSmsOrder> r = mongoTemplate.mapReduce(query, "t_sms_order", map, reduceStr, MongoTSmsOrder.class);
-		DBObject dbObject = r.getRawResults();
-		JSONArray jsonArray = JSONArray.parseArray(String.valueOf(dbObject.get("results")));
-		for (int i = 0; i < jsonArray.size(); i++) {
-			JSONObject o = (JSONObject)jsonArray.get(i);
-			JSONObject countObj = (JSONObject)o.get("value");
-			JSONObject returnJson = new JSONObject();
-			returnJson.put("count", countObj.getInteger("count"));
-			returnJson.put("user", countObj.getInteger("user"));
-			returnJson.put("fee", countObj.getInteger("fee"));
-			returnJson.put("feeReduce", countObj.getInteger("feeReduce"));
-			returnMap.put(o.getInteger("_id"), returnJson.toString());
+		String temporaryCollection = "temp_t_sms_order_"+System.currentTimeMillis();
+		try {
+			if (reduce == null) {
+				reduce = 0;
+			}
+			Criteria criteria = null;
+			if (Utils.isEmpty(status)) {
+				criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime);
+			} else {
+				criteria = Criteria.where("seller_id").is(sellerId).and("create_time").gt(startTime).lt(endTime).and("status").is(status);
+			}
+			Query query = new Query(criteria);
+			String map = "function() {emit(this.app_id, {count:1,countReduce:1,user:1,fee:this.fee,feeReduce:0,imsi:this.imsi,reduce:this.reduce});}";
+			String reduceStr = "function(key, values) {"
+					+ "var total = 0, totalReduce = 0, sumfee = 0, sumfeeReduce = 0;"
+					+ "var temp = new Array();"
+					+ "var imsis = new Array;"
+					+ "for(var i=0;i<values.length;i++){"
+					+ "total += values[i].count;"
+					+ "imsis=imsis.concat(values[i].imsi);"
+					+ "sumfee += values[i].fee;"
+					+ "if("+reduce+" == values[i].reduce){"
+					+ "totalReduce += values[i].countReduce;"
+					+ "sumfeeReduce += values[i].fee;"
+					+ "}"
+					+ "}"
+					//imsis去重
+					+ "imsis.sort();"
+					+ "for(i = 0; i < imsis.length; i++) {"
+					+ "if(imsis[i] == imsis[i+1]) {continue;}"
+					+ "temp[temp.length]=imsis[i];"
+					+ "}"
+					+ "return {count:total,countReduce:totalReduce,user:temp.length,fee:sumfee,feeReduce:sumfeeReduce,imsi:imsis,reduce:"+reduce+"};"
+					+ "}";
+			
+			MapReduceOptions options = new MapReduceOptions();
+			options.outputCollection(temporaryCollection);
+			
+			mongoTemplate.mapReduce(query, "t_sms_order", map, reduceStr, options, MongoTSmsOrder.class);
+			// 然后到输出的结果表中去查询
+			returnMap = mongoTemplate.execute(temporaryCollection,
+					new CollectionCallback<Map<Integer, String>>() {
+				public Map<Integer, String> doInCollection(DBCollection collection) throws MongoException, DataAccessException {
+					DBCursor dbCursor = collection.find();
+					Map<Integer, String> map = new HashMap<Integer, String>();
+					while(dbCursor.hasNext()){
+						DBObject dbObj= dbCursor.next();
+						double idF = (Double)dbObj.get("_id");
+						Integer id = (int)idF;
+						String result = String.valueOf(dbObj.get("value"));
+						JSONObject resJson = JSONObject.parseObject(result);
+						JSONObject returnJson = new JSONObject();
+						returnJson.put("count", resJson.getInteger("count"));
+						returnJson.put("countReduce", resJson.getInteger("countReduce"));
+						returnJson.put("user", resJson.getInteger("user"));
+						returnJson.put("fee", resJson.getInteger("fee"));
+						returnJson.put("feeReduce", resJson.getInteger("feeReduce"));
+						map.put(id, returnJson.toString());
+					}
+					return map;
+				}
+			});
+		} catch (Exception e) {
+			LogUtil.error(e.getMessage(), e);
+		} finally {
+			mongoTemplate.dropCollection(temporaryCollection);
 		}
 		return returnMap;
 	}
@@ -403,15 +451,15 @@ public class MongoTSmsOrderDao extends MongoGenDao<MongoTSmsOrder>{
 	 * @param endTime
 	 * @return
 	 */
-	public Long mapReduceUserCount(Integer sellerId, Integer appId, Date startTime, Date endTime) {
-		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("app_id").is(appId).and("create_time").gt(startTime).lt(endTime);
-		Query query = new Query(criteria);
-		String map = "function() { emit(this.pay_phone, {count:1});}";
-		String reduce = "function(key, values) {var total = 0;for(var i=0;i<values.length;i++){total += values[i].count;}return {count:total};}";
-		MapReduceResults<MongoTSmsOrder> r = mongoTemplate.mapReduce(query, "t_sms_order", map, reduce, MongoTSmsOrder.class);
-		MapReduceCounts mapReduceCounts = r.getCounts();
-		return mapReduceCounts.getOutputCount();
-	}
+//	public Long mapReduceUserCount(Integer sellerId, Integer appId, Date startTime, Date endTime) {
+//		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("app_id").is(appId).and("create_time").gt(startTime).lt(endTime);
+//		Query query = new Query(criteria);
+//		String map = "function() { emit(this.pay_phone, {count:1});}";
+//		String reduce = "function(key, values) {var total = 0;for(var i=0;i<values.length;i++){total += values[i].count;}return {count:total};}";
+//		MapReduceResults<MongoTSmsOrder> r = mongoTemplate.mapReduce(query, "t_sms_order", map, reduce, MongoTSmsOrder.class);
+//		MapReduceCounts mapReduceCounts = r.getCounts();
+//		return mapReduceCounts.getOutputCount();
+//	}
 	
 	/**
 	 * 根据sellerId，appId reduce出成功用户数
@@ -421,15 +469,15 @@ public class MongoTSmsOrderDao extends MongoGenDao<MongoTSmsOrder>{
 	 * @param endTime
 	 * @return
 	 */
-	public Long mapReduceSuccUserCount(Integer sellerId, Integer appId, Date startTime, Date endTime) {
-		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("app_id").is(appId).and("create_time").gt(startTime).lt(endTime).and("status").is("3");
-		Query query = new Query(criteria);
-		String map = "function() { emit(this.pay_phone, {count:1});}";
-		String reduce = "function(key, values) {var total = 0;for(var i=0;i<values.length;i++){total += values[i].count;}return {count:total};}";
-		MapReduceResults<MongoTSmsOrder> r = mongoTemplate.mapReduce(query, "t_sms_order", map, reduce, MongoTSmsOrder.class);
-		MapReduceCounts mapReduceCounts = r.getCounts();
-		return mapReduceCounts.getOutputCount();
-	}
+//	public Long mapReduceSuccUserCount(Integer sellerId, Integer appId, Date startTime, Date endTime) {
+//		Criteria criteria = Criteria.where("seller_id").is(sellerId).and("app_id").is(appId).and("create_time").gt(startTime).lt(endTime).and("status").is("3");
+//		Query query = new Query(criteria);
+//		String map = "function() { emit(this.pay_phone, {count:1});}";
+//		String reduce = "function(key, values) {var total = 0;for(var i=0;i<values.length;i++){total += values[i].count;}return {count:total};}";
+//		MapReduceResults<MongoTSmsOrder> r = mongoTemplate.mapReduce(query, "t_sms_order", map, reduce, MongoTSmsOrder.class);
+//		MapReduceCounts mapReduceCounts = r.getCounts();
+//		return mapReduceCounts.getOutputCount();
+//	}
 	
 	/**
 	 * 根据sellerId,appId reduce出该sellerId,appId下存在多少省份,并统计请求数和金额

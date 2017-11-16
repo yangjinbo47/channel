@@ -411,7 +411,7 @@ public class TySpaceLTAction extends SimpleActionSupport {
 		String fee = ServletRequestUtils.getStringParameter(request, "fee", null);
 		String mac = ServletRequestUtils.getStringParameter(request, "mac", null);
 		String key = "1614Nm44";
-//		LogUtil.log("ltcallback mobile:"+mobile+" LinkId:"+linkId+" longCode:"+longCode+" msg:"+msg+" status:"+status+" fee:"+fee+" mac:"+mac);
+		LogUtil.log("ltcallback mobile:"+mobile+" LinkId:"+linkId+" longCode:"+longCode+" msg:"+msg+" status:"+status+" fee:"+fee+" mac:"+mac);
 		try {
 			String geneMac = MD5.getMD5(mobile+linkId+longCode+msg+status+fee+key).toUpperCase();
 			if (mac.equals(geneMac)) {

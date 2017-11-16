@@ -261,73 +261,27 @@ public class OrderAction extends SimpleActionSupport {
 				end = new java.sql.Date(endDate.getTime());
 			}
 			
-//			JSONArray jsonArray = new JSONArray();
-//			Integer userType = (Integer)getSessionAttribute(Constants.OPERATOR_TYPE);
-//			List<TPushSeller> pushSellerList = pushSellerManager.findAllPushSellerList(userType);
-//			for (TPushSeller tPushSeller : pushSellerList) {
-//				int sellerId = tPushSeller.getId();
-//				String sellerName = tPushSeller.getName();
-//				
-//				Map<Integer, String> succMap = orderManager.mapReducePushIds(sellerId, start, end, 3);
-//				for (Integer pushId : succMap.keySet()) {
-//					Integer mo = 0;
-//					Integer moQc = 0;
-//					Integer mr = 0;
-//					Integer fee = 0;
-//					String zhl = null;
-//					String resultStr = succMap.get(pushId);
-//					if (resultStr != null) {
-//						JSONObject jsonObject = JSONObject.parseObject(resultStr);
-//						mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
-//						moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
-//						mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
-//						fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
-//						fee = fee / 100;//转化以元为单位
-//					}
-//					
-//					//转化率
-//					float f = 0;
-//					if (mr == 0) {
-//						f = 0;
-//					} else {
-//						f = (float)mr/moQc;
-//					}
-//					DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
-//					if (f == 0) {
-//						zhl = "0%";
-//					} else {
-//						zhl = df.format(f*100) + "%";//返回的是String类型的
-//					}
-//					
-//					PushPackage pushPackage = packageManager.get(pushId);
-//					int companyShow = pushPackage.getCompanyShow();
-//					if (companyShow == userType || userType.equals(Constants.USER_TYPE.ALL.getValue())) {					
-//						String packageName = pushPackage.getPackageName();
-//						
-//						JSONObject report = new JSONObject();
-//						report.put("sellerId", sellerId);
-//						report.put("sellerName", sellerName);
-//						report.put("pushId", pushId);
-//						report.put("packageName", packageName);
-//						report.put("mo", mo);
-//						report.put("moQc", moQc);
-//						report.put("mr", mr);
-//						report.put("fee", fee);
-//						report.put("zhl", zhl);
-//						jsonArray.add(report);
-//					}
-//				}
-//			}
-			
 			JSONArray jsonArray = new JSONArray();
-			Map<Integer, String> reduceMap = orderManager.mapReduceSeller(start, end);
+			Map<Integer, Map<Integer, String>> reduceMap = orderManager.mapReduceSeller(start, end);
 			for (Integer sellerId : reduceMap.keySet()) {
-				String resultJson = reduceMap.get(sellerId);
-				JSONObject jsonObject = JSONObject.parseObject(resultJson);
-				Integer mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
-				Integer moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
-				Integer mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
-				Integer fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
+				Map<Integer, String> statusMap = reduceMap.get(sellerId);
+				String noPayStr = statusMap == null ? null : statusMap.get(1);
+				String succStr = statusMap == null ? null : statusMap.get(3);
+				String failStr = statusMap == null ? null : statusMap.get(4);
+				JSONObject noPayJson = JSONObject.parseObject(noPayStr);
+				Integer noPayMo = noPayJson == null ? 0 : noPayJson.getInteger("count");
+				Integer noPayMoQc = noPayJson == null ? 0 : noPayJson.getInteger("user");
+				JSONObject succJson = JSONObject.parseObject(succStr);
+				Integer succMo = succJson == null ? 0 : succJson.getInteger("count");
+				Integer succMoQc = succJson == null ? 0 : succJson.getInteger("user");
+				JSONObject failJson = JSONObject.parseObject(failStr);
+				Integer failMo = failJson == null ? 0 : failJson.getInteger("count");
+				Integer failMoQc = failJson == null ? 0 : failJson.getInteger("user");
+				
+				Integer mo = noPayMo + succMo + failMo;//请求总数
+				Integer moQc = noPayMoQc + succMoQc + failMoQc;//mo去重
+				Integer mr = succMoQc;//mr
+				Integer fee = succJson == null ? 0 : succJson.getInteger("fee");//成功信息费
 				fee = fee / 100;//转化以元为单位
 				
 				//转化率
@@ -535,7 +489,7 @@ public class OrderAction extends SimpleActionSupport {
 			
 			JSONArray jsonArray = new JSONArray();
 			
-			Map<String, String> map = orderManager.mapReduceProvince(sellerId, start, end);
+			Map<String, Map<Integer, String>> reduceMap = orderManager.mapReduceProvince(sellerId, start, end);
 			Integer moQuanguo = 0;
 			Integer moQuanguoQc = 0;
 			Integer mrQuanguo = 0;
@@ -549,14 +503,33 @@ public class OrderAction extends SimpleActionSupport {
 				Integer mr = 0;
 				Integer fee = 0;
 				String zhl = null;
-				String resultStr = map.get(province);
-				if (resultStr != null) {
-					JSONObject jsonObject = JSONObject.parseObject(resultStr);
-					mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
-					moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
-					mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
-					fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
+//				String resultStr = map.get(province);
+				Map<Integer, String> statusMap = reduceMap.get(province);
+				if (statusMap != null) {
+					String noPayStr = statusMap == null ? null : statusMap.get(1);
+					String succStr = statusMap == null ? null : statusMap.get(3);
+					String failStr = statusMap == null ? null : statusMap.get(4);
+					JSONObject noPayJson = JSONObject.parseObject(noPayStr);
+					Integer noPayMo = noPayJson == null ? 0 : noPayJson.getInteger("count");
+					Integer noPayMoQc = noPayJson == null ? 0 : noPayJson.getInteger("user");
+					JSONObject succJson = JSONObject.parseObject(succStr);
+					Integer succMo = succJson == null ? 0 : succJson.getInteger("count");
+					Integer succMoQc = succJson == null ? 0 : succJson.getInteger("user");
+					JSONObject failJson = JSONObject.parseObject(failStr);
+					Integer failMo = failJson == null ? 0 : failJson.getInteger("count");
+					Integer failMoQc = failJson == null ? 0 : failJson.getInteger("user");
+					
+					mo = noPayMo + succMo + failMo;//请求总数
+					moQc = noPayMoQc + succMoQc + failMoQc;//mo去重
+					mr = succMoQc;//mr
+					fee = succJson == null ? 0 : succJson.getInteger("fee");//成功信息费
 					fee = fee / 100;//转化以元为单位
+//					JSONObject jsonObject = JSONObject.parseObject(resultStr);
+//					mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
+//					moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
+//					mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
+//					fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
+//					fee = fee / 100;//转化以元为单位
 				}
 				//转化率
 				float f = 0;

@@ -62,15 +62,27 @@ public class PackageDailyJob {
 			java.sql.Date end = new java.sql.Date(endDate.getTime());
 			
 			Map<Integer, PackageDailyBean> map = new HashMap<Integer, PackageDailyBean>();
-			Map<Integer, String> reduceMap = orderManager.mapReduceSeller(start, end);
+			Map<Integer, Map<Integer, String>> reduceMap = orderManager.mapReduceSeller(start, end);
 			for (Integer sellerId : reduceMap.keySet()) {
 				haveData = true;
-				String resultJson = reduceMap.get(sellerId);
-				JSONObject jsonObject = JSONObject.parseObject(resultJson);
-				Integer mo = jsonObject.getInteger("count") == null ? 0 : jsonObject.getInteger("count");//请求总数
-				Integer moQc = jsonObject.getInteger("user") == null ? 0 : jsonObject.getInteger("user");//mo去重
-				Integer mr = jsonObject.getInteger("succ") == null ? 0 : jsonObject.getInteger("succ");//mr
-				Integer fee = jsonObject.getInteger("fee") == null ? 0 : jsonObject.getInteger("fee");//成功信息费
+				Map<Integer, String> statusMap = reduceMap.get(sellerId);
+				String noPayStr = statusMap == null ? null : statusMap.get(1);
+				String succStr = statusMap == null ? null : statusMap.get(3);
+				String failStr = statusMap == null ? null : statusMap.get(4);
+				JSONObject noPayJson = JSONObject.parseObject(noPayStr);
+				Integer noPayMo = noPayJson == null ? 0 : noPayJson.getInteger("count");
+				Integer noPayMoQc = noPayJson == null ? 0 : noPayJson.getInteger("user");
+				JSONObject succJson = JSONObject.parseObject(succStr);
+				Integer succMo = succJson == null ? 0 : succJson.getInteger("count");
+				Integer succMoQc = succJson == null ? 0 : succJson.getInteger("user");
+				JSONObject failJson = JSONObject.parseObject(failStr);
+				Integer failMo = failJson == null ? 0 : failJson.getInteger("count");
+				Integer failMoQc = failJson == null ? 0 : failJson.getInteger("user");
+				
+				Integer mo = noPayMo + succMo + failMo;//请求总数
+				Integer moQc = noPayMoQc + succMoQc + failMoQc;//mo去重
+				Integer mr = succMoQc;//mr
+				Integer fee = succJson == null ? 0 : succJson.getInteger("fee");//成功信息费
 				fee = fee / 100;//转化以元为单位
 				
 				//转化率

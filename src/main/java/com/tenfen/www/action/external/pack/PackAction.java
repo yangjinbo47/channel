@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.alibaba.fastjson.JSONObject;
@@ -46,6 +48,7 @@ public class PackAction extends SimpleActionSupport {
 
 	private static final long serialVersionUID = 3205177939227033736L;
 
+	private static Log visitLog = LogFactory.getLog("visitLog");
 	@Autowired
 	private BlackListManager blackListManager;
 	@Autowired
@@ -64,6 +67,223 @@ public class PackAction extends SimpleActionSupport {
 	public static String read_package_pre = "http://wap.tyread.com";
 	public static String sound_read_package_pre = "http://wap.tyread.com:8080";
 
+//	public void createOrder() {
+//		ICacheClient mc = cacheFactory.getCommonCacheClient();
+//		JSONObject json = new JSONObject();
+//		String code = null;
+//		String msg = null;
+//		String comingKey = null;
+//		try {
+//			String imsi = ServletRequestUtils.getStringParameter(request, "imsi", null);
+//			String channel = ServletRequestUtils.getStringParameter(request, "channel");
+//			int price = ServletRequestUtils.getIntParameter(request, "price");
+//			String outTradeNo = ServletRequestUtils.getStringParameter(request, "out_trade_no", "");
+//			String phone = ServletRequestUtils.getStringParameter(request, "phone", null);
+//			
+//			//代码屏蔽
+////			boolean cut = true;
+////			if (cut) {
+////				json.put("code", "2000");
+////				json.put("msg", "基地返回码错误");
+////				StringUtil.printJson(response, json.toString());
+////				return;
+////			}
+//			
+//			comingKey = "coming_"+imsi;
+//			Boolean coming = (Boolean)mc.getCache(comingKey);
+//			if (!Utils.isEmpty(coming)) {
+//				json.put("code", "1007");
+//				json.put("msg", imsi+"支付中,不可重复提交");
+//				StringUtil.printJson(response, json.toString());
+//				return;
+//			} else {
+//				mc.setCache(comingKey, true, 5*CacheFactory.MINUTE);
+//			}
+//			
+//			TyreadUtil tyu = new TyreadUtil(cacheFactory, blackListManager, orderManager, packageManager, mobileAreaManager);
+//			String province = null;
+//			
+//			//从本地库中获取
+//			ImsiMdnRelation imsiMdnRelation = imsiMdnRelationManager.getEntityByProperty("imsi", imsi);
+//			if (imsiMdnRelation != null) {
+//				phone = imsiMdnRelation.getPhoneNum();
+//			}
+//			//从接口获取号码
+//			if (phone == null || phone.length() == 0) {
+//				phone = CTUtil.queryPhoneByIMSI(imsi);
+//				if (!Utils.isEmpty(phone)) {
+//					imsiMdnRelation = new ImsiMdnRelation();
+//					imsiMdnRelation.setImsi(imsi);
+//					imsiMdnRelation.setPhoneNum(phone);
+//					imsiMdnRelationManager.save(imsiMdnRelation);
+//				}
+//			}
+//			if (!Utils.isEmpty(phone)) {
+//				province = tyu.searchAreaByPhone(phone);
+//			}
+//			
+//			LogUtil.log("packageInfo="+ imsi + "查询电话号码为：" + phone +",所在区域："+province);
+//			if (Utils.isEmpty(phone)) {
+//				code = "1001";
+//				msg = "没有获取到您的imsi号对应的手机号码";
+//			}
+//
+//			// 检查是否是黑名单用户
+//			boolean success = tyu.checkPhoneIsBlack(phone);
+//			if (success) {
+//				code = "1002";
+//				msg = "您属于黑名单用户";
+//			}
+//
+//			// 检查该号码是否有过包月，如果包月数量不为0，则不能重复包月
+//			Boolean isBaoyue = tyu.checkBaoyue(phone);
+//			if (isBaoyue) {
+//				code = "1003";
+//				msg = "三个月内已有包月包订购记录";
+//			}
+//			
+//			TPushSeller pushSeller = pushSellerManager.getPushSellerByProperty("sellerKey", channel);
+//			if (Utils.isEmpty(pushSeller)) {
+//				code = "1004";
+//				msg = "该渠道信息不存在";
+//			}
+//			if (Constants.PACKAGE_SELLER_STATUS.FORBID.getValue().equals(pushSeller.getStatus())) {
+//				code = "1005";
+//				msg = "该渠道信息不存在";
+//			}
+//			
+//			if (!Utils.isEmpty(code) && !Utils.isEmpty(msg)) {
+//				json.put("code", code);
+//				json.put("msg", msg);
+//				StringUtil.printJson(response, json.toString());
+//				return;
+//			}
+//			
+//			Integer sellerId = pushSeller.getId();
+//			if (Utils.isCTPhone(phone)) {
+//				// 查询推送包月列表
+//				List<TPushSellerPackages> sellerPackages = pushSeller.getSellerPackages();
+//				if (sellerPackages.size() == 0) {
+//					code = "1006";
+//					msg = "未找到推送包月包信息";
+//				}
+//				
+//				//加入自有包
+////				TPushSellerPackages self = new TPushSellerPackages();
+////				PushPackage selfPackage = packageManager.get(481);
+////				self.setPushSeller(pushSeller);
+////				self.setPushPackage(selfPackage);
+////				sellerPackages.add(0,self);
+//				
+//				for (TPushSellerPackages tPushSellerPackages : sellerPackages) {
+//					PushPackage pushPackage = tPushSellerPackages.getPushPackage();
+//					if (price == pushPackage.getPrice() || 481 == pushPackage.getId()) {
+//						boolean flag = packageValidate(tyu, tPushSellerPackages, province);//验证包月包状态
+//						if (flag) {
+//							LogUtil.log("packageInfo===="+phone + "进入" + pushPackage.getPackageName());
+//							String amount = String.valueOf(pushPackage.getPrice());
+//							String productId = pushPackage.getPackageUrl();
+//							Integer fee = pushPackage.getPrice();
+//							if (pushPackage.getType() == 1) {//天翼阅读
+//								if (pushPackage.getPackageName().indexOf("图文") != -1) {//天翼图文
+//									//创建tradeId
+//									String tradeId = empOrderCreate(amount, productId, phone);
+//									if (Utils.isEmpty(tradeId)) {
+//										code = "1009";
+//										msg = "黑名单用户";
+//										break;
+//									}
+//									//发送验证码
+//									boolean isSucc = empSecurityCodeFetch(tradeId, phone);
+//									if (isSucc) {
+//										createOrder(tradeId, outTradeNo, imsi, phone, pushPackage.getPackageName(), province, sellerId, pushPackage.getId(), fee);
+//										
+//										code = "1";
+//										if (481 == pushPackage.getId()) {
+//											json.put("price", 800);
+//											json.put("package_name", "aaa");
+//											json.put("monthProductId", "24283263");
+//										} else {
+//											json.put("price", pushPackage.getPrice());
+//											json.put("package_name", pushPackage.getPackageName());
+//											json.put("monthProductId", pushPackage.getPackageUrl());
+//										}
+//										json.put("tradeId", tradeId);
+//										msg = "发送成功";
+//										break;
+//									} else {
+//										code = "1010";
+//										msg = "发送失败";
+//										break;
+//									}
+//								} else {//天翼有声
+//									//创建tradeId
+//									String tradeId = empSoundOrderCreate(amount, productId, phone);
+//									if (Utils.isEmpty(tradeId)) {
+//										code = "1009";
+//										msg = "黑名单用户";
+//										break;
+//									}
+//									//发送验证码
+//									boolean isSucc = empSecurityCodeFetch(tradeId, phone);
+//									if (isSucc) {
+//										createOrder(tradeId, outTradeNo, imsi, phone, pushPackage.getPackageName(), province, sellerId, pushPackage.getId(), fee);
+//										
+//										code = "1";
+//										json.put("price", pushPackage.getPrice());
+//										json.put("package_name", pushPackage.getPackageName());
+//										json.put("tradeId", tradeId);
+//										json.put("monthProductId", pushPackage.getPackageUrl());
+//										msg = "发送成功";
+//										break;
+//									} else {
+//										code = "1010";
+//										msg = "发送失败";
+//										break;
+//									}
+//								}
+//							} else if (pushPackage.getType() == 2) {//爱游戏
+//								//创建correlator
+//								String tradeId = null;
+//								String createJsonStr = iGameEmpOrderCreate(productId, phone);
+//								JSONObject createJson = JSONObject.parseObject(createJsonStr);
+//								Integer resultCode = createJson.getInteger("code");
+//								if (resultCode == 0) {
+//									String ext = createJson.getString("ext");
+//									JSONObject extJson = JSONObject.parseObject(ext);
+//									tradeId = extJson.getString("correlator");
+//									
+//									createOrder(tradeId, outTradeNo, imsi, phone, pushPackage.getPackageName(), province, sellerId, pushPackage.getId(), fee);
+//									code = "1";
+//									json.put("price", pushPackage.getPrice());
+//									json.put("package_name", pushPackage.getPackageName());
+//									json.put("tradeId", tradeId);
+//									json.put("monthProductId", pushPackage.getPackageUrl());
+//									msg = "发送成功";
+//									break;
+//								}
+//							}
+//						} else {
+//							LogUtil.log(phone + "没进入:"+pushPackage.getPackageName());
+//							code = "1007";
+//							msg = "包月校验未通过";
+//							continue;
+//						}
+//					}
+//				}
+//			}
+//			
+//			json.put("code", code);
+//			json.put("msg", msg);
+//			LogUtil.log("packageInfo===="+json.toString());
+//			StringUtil.printJson(response, json.toString());
+//		} catch (Exception e) {
+//			LogUtil.error(e.getMessage(), e);
+//		} finally {
+////			mc.deleteCache(comingKey);
+//		}
+//	}
+	
 	public void createOrder() {
 		ICacheClient mc = cacheFactory.getCommonCacheClient();
 		JSONObject json = new JSONObject();
@@ -77,6 +297,9 @@ public class PackAction extends SimpleActionSupport {
 			String outTradeNo = ServletRequestUtils.getStringParameter(request, "out_trade_no", "");
 			String phone = ServletRequestUtils.getStringParameter(request, "phone", null);
 			
+			//用户进入打印日志
+			visitLog.info("tyread package param:imsi="+imsi+",channel="+channel+",price="+price+",outTradeNo="+outTradeNo);
+			
 			//代码屏蔽
 //			boolean cut = true;
 //			if (cut) {
@@ -89,7 +312,7 @@ public class PackAction extends SimpleActionSupport {
 			comingKey = "coming_"+imsi;
 			Boolean coming = (Boolean)mc.getCache(comingKey);
 			if (!Utils.isEmpty(coming)) {
-				json.put("code", "1006");
+				json.put("code", "1007");
 				json.put("msg", imsi+"支付中,不可重复提交");
 				StringUtil.printJson(response, json.toString());
 				return;
@@ -122,27 +345,24 @@ public class PackAction extends SimpleActionSupport {
 			LogUtil.log("packageInfo="+ imsi + "查询电话号码为：" + phone +",所在区域："+province);
 			if (Utils.isEmpty(phone)) {
 				code = "1001";
-				msg = "没有获取到您的imsi号对应的手机号码";
-			}
-
-			// 检查是否是黑名单用户
-			boolean success = tyu.checkPhoneIsBlack(phone);
-			if (success) {
-				code = "1002";
-				msg = "您属于黑名单用户";
+				msg = "没有获取到您的imsi="+imsi+"所对应的手机号码";
 			}
 
 			// 检查该号码是否有过包月，如果包月数量不为0，则不能重复包月
 			Boolean isBaoyue = tyu.checkBaoyue(phone);
 			if (isBaoyue) {
-				code = "1003";
+				code = "1002";
 				msg = "三个月内已有包月包订购记录";
 			}
 			
 			TPushSeller pushSeller = pushSellerManager.getPushSellerByProperty("sellerKey", channel);
 			if (Utils.isEmpty(pushSeller)) {
-				code = "1004";
+				code = "1003";
 				msg = "该渠道信息不存在";
+			}
+			if (Constants.PACKAGE_SELLER_STATUS.FORBID.getValue().equals(pushSeller.getStatus())) {
+				code = "1004";
+				msg = "该渠道被冻结";
 			}
 			
 			if (!Utils.isEmpty(code) && !Utils.isEmpty(msg)) {
@@ -157,16 +377,16 @@ public class PackAction extends SimpleActionSupport {
 				// 查询推送包月列表
 				List<TPushSellerPackages> sellerPackages = pushSeller.getSellerPackages();
 				if (sellerPackages.size() == 0) {
-					code = "1004";
+					code = "1005";
 					msg = "未找到推送包月包信息";
 				}
 				
 				//加入自有包
-				TPushSellerPackages self = new TPushSellerPackages();
-				PushPackage selfPackage = packageManager.get(481);
-				self.setPushSeller(pushSeller);
-				self.setPushPackage(selfPackage);
-				sellerPackages.add(0,self);
+//				TPushSellerPackages self = new TPushSellerPackages();
+//				PushPackage selfPackage = packageManager.get(481);
+//				self.setPushSeller(pushSeller);
+//				self.setPushPackage(selfPackage);
+//				sellerPackages.add(0,self);
 				
 				for (TPushSellerPackages tPushSellerPackages : sellerPackages) {
 					PushPackage pushPackage = tPushSellerPackages.getPushPackage();
@@ -186,29 +406,16 @@ public class PackAction extends SimpleActionSupport {
 										msg = "黑名单用户";
 										break;
 									}
-									//发送验证码
-									boolean isSucc = empSecurityCodeFetch(tradeId, phone);
-									if (isSucc) {
-										createOrder(tradeId, outTradeNo, imsi, phone, pushPackage.getPackageName(), province, sellerId, pushPackage.getId(), fee);
-										
-										code = "1";
-										if (481 == pushPackage.getId()) {
-											json.put("price", 800);
-											json.put("package_name", "aaa");
-											json.put("monthProductId", "24283263");
-										} else {
-											json.put("price", pushPackage.getPrice());
-											json.put("package_name", pushPackage.getPackageName());
-											json.put("monthProductId", pushPackage.getPackageUrl());
-										}
-										json.put("tradeId", tradeId);
-										msg = "发送成功";
-										break;
-									} else {
-										code = "1010";
-										msg = "发送失败";
-										break;
-									}
+									//异步解析wap，发送验证码
+									new Thread(new ParseThread(imsi, phone, productId, pushPackage.getPackageName(), fee, outTradeNo, sellerId, pushPackage.getId(), province, orderManager)).start();
+									
+									code = "1";
+									json.put("imsi", imsi);
+									json.put("price", pushPackage.getPrice());
+									json.put("package_name", pushPackage.getPackageName());
+									json.put("pushId", pushPackage.getId());
+									msg = "发送成功";
+									break;
 								} else {//天翼有声
 									//创建tradeId
 									String tradeId = empSoundOrderCreate(amount, productId, phone);
@@ -258,7 +465,7 @@ public class PackAction extends SimpleActionSupport {
 							}
 						} else {
 							LogUtil.log(phone + "没进入:"+pushPackage.getPackageName());
-							code = "1007";
+							code = "1006";
 							msg = "包月校验未通过";
 							continue;
 						}
@@ -268,37 +475,156 @@ public class PackAction extends SimpleActionSupport {
 			
 			json.put("code", code);
 			json.put("msg", msg);
-			LogUtil.log("packageInfo===="+json.toString());
+			LogUtil.log("packageInfoRes===="+json.toString());
 			StringUtil.printJson(response, json.toString());
 		} catch (Exception e) {
 			LogUtil.error(e.getMessage(), e);
-		} finally {
-//			mc.deleteCache(comingKey);
 		}
 	}
 	
+//	public void pay() throws Exception {
+//		ICacheClient mc = cacheFactory.getCommonCacheClient();
+//		String monthProductId = ServletRequestUtils.getStringParameter(request, "monthProductId", null);
+//		String indentifyCode = ServletRequestUtils.getStringParameter(request, "code", null);
+//		String tradeId = ServletRequestUtils.getStringParameter(request, "tradeId", null);
+//		
+//		String comingKey = null;
+//		JSONObject json = new JSONObject();
+//		String code = null;
+//		String msg = null;
+//		String outTradeNo = null;
+//		comingKey = "coming_"+tradeId;
+//		Boolean coming = (Boolean)mc.getCache(comingKey);
+//		if (!Utils.isEmpty(coming)) {
+//			json.put("code", "1006");
+//			json.put("msg", tradeId+"支付中,不可重复提交");
+//			StringUtil.printJson(response, json.toString());
+//			return;
+//		} else {
+//			mc.setCache(comingKey, true, 3*CacheFactory.MINUTE);
+//		}
+//		if (Utils.isEmpty(monthProductId)) {
+//			code = "1001";
+//			msg = "包月ID不能为空";
+//		}
+//		if (Utils.isEmpty(indentifyCode)) {
+//			code = "1002";
+//			msg = "验证码不能为空";
+//		}
+//		if (Utils.isEmpty(tradeId)) {
+//			code = "1003";
+//			msg = "交易ID不能为空";
+//		}
+//		
+//		if (!Utils.isEmpty(code)) {
+//			json.put("code", code);
+//			json.put("msg", msg);
+//			StringUtil.printJson(response, json.toString());
+//			return;
+//		}
+//		
+//		try {
+//			//查看订单状态
+//			TOrder order = orderManager.getByTradeId(tradeId);
+//			if (Utils.isEmpty(order)) {
+//				json.put("code", "1005");
+//				json.put("msg", "没有查询到订单信息");
+//				StringUtil.printJson(response, json.toString());
+//				return;
+//			}
+//			String name = order.getName();
+//			outTradeNo = order.getOutTradeNo();
+//			Integer sellerId = order.getSellerId();
+//			if (order.getStatus() == 1) {
+//				String phone = order.getPhoneNum();
+//				
+//				Integer pushId = order.getPushId();//推送id
+//				PushPackage pushPackage = packageManager.get(pushId);
+//				Integer type = pushPackage.getType();
+////				String channel = pushPackage.getRecChannel();
+//				boolean isSucc = false;
+//				if (type == 1) {//天翼阅读
+//					isSucc = empSecurityCodeValidate(tradeId, indentifyCode, phone, name);
+//				} else if (type == 2) {//爱音乐
+//					isSucc = iGameEmpCodeValidate(monthProductId, phone, indentifyCode, tradeId);
+//				}
+//				
+//				//是否扣量
+//				double reduce_conf = pushPackage.getReduce()/(double)100;
+//				double rate = new Random().nextDouble();
+//				Integer reduce = 0;
+//				if (rate < reduce_conf) {
+//					reduce = 1;
+//				}
+//				if (isSucc) {
+//					if (481 == order.getPushId()) {
+//						updateOrder(sellerId, tradeId, 4, reduce);//t_order 强制为失败
+//						//更新产品日限
+//						packageManager.addTodayLimit(order.getPushId());
+//						//保存入t_order_self
+//						orderManager.saveToSelf(order);
+//						code = "1004";
+//						msg = "包月失败";
+//					} else {
+//						updateOrder(sellerId, tradeId, 3, reduce);
+//						if (reduce == 1) {
+//							code = "1004";
+//							msg = "包月失败";
+//						} else {
+//							code = "1";
+//							msg = "包月成功";
+//						}
+//					}
+//					
+//				} else {
+//					updateOrder(sellerId, tradeId, 4, reduce);
+//					
+//					code = "1004";
+//					msg = "包月失败";
+//				}
+//				json.put("code", code);
+//				json.put("msg", msg);
+//				json.put("out_trade_no", outTradeNo);
+//				StringUtil.printJson(response, json.toString());
+//			} else if (order.getStatus() == 3){
+//				json.put("code", "1");
+//				json.put("msg", "包月成功");
+//				json.put("out_trade_no", outTradeNo);
+//				StringUtil.printJson(response, json.toString());
+//			} else if (order.getStatus() == 4){
+//				json.put("code", "1004");
+//				json.put("msg", "包月失败");
+//				json.put("out_trade_no", outTradeNo);
+//				StringUtil.printJson(response, json.toString());
+//			}
+//			LogUtil.log("packagePay result:"+json.toJSONString());
+//		} catch (Exception e) {
+//			LogUtil.error(e.getMessage(), e);
+//		}
+//	}
+	
 	public void pay() throws Exception {
 		ICacheClient mc = cacheFactory.getCommonCacheClient();
-		String monthProductId = ServletRequestUtils.getStringParameter(request, "monthProductId", null);
+		String imsi = ServletRequestUtils.getStringParameter(request, "imsi", null);
+		Integer pushId = ServletRequestUtils.getIntParameter(request, "pushId", 0);
 		String indentifyCode = ServletRequestUtils.getStringParameter(request, "code", null);
-		String tradeId = ServletRequestUtils.getStringParameter(request, "tradeId", null);
 		
 		String comingKey = null;
 		JSONObject json = new JSONObject();
 		String code = null;
 		String msg = null;
 		String outTradeNo = null;
-		comingKey = "coming_"+tradeId;
+		comingKey = "coming_"+imsi+"_"+indentifyCode;
 		Boolean coming = (Boolean)mc.getCache(comingKey);
 		if (!Utils.isEmpty(coming)) {
 			json.put("code", "1006");
-			json.put("msg", tradeId+"支付中,不可重复提交");
+			json.put("msg", imsi+"正在支付"+pushId+"产品,不可重复提交");
 			StringUtil.printJson(response, json.toString());
 			return;
 		} else {
 			mc.setCache(comingKey, true, 3*CacheFactory.MINUTE);
 		}
-		if (Utils.isEmpty(monthProductId)) {
+		if (Utils.isEmpty(pushId)) {
 			code = "1001";
 			msg = "包月ID不能为空";
 		}
@@ -306,11 +632,32 @@ public class PackAction extends SimpleActionSupport {
 			code = "1002";
 			msg = "验证码不能为空";
 		}
-		if (Utils.isEmpty(tradeId)) {
+		if (Utils.isEmpty(imsi)) {
 			code = "1003";
-			msg = "交易ID不能为空";
+			msg = "电话号码不能为空";
 		}
 		
+		//从本地库中获取
+		String phone = null;
+		ImsiMdnRelation imsiMdnRelation = imsiMdnRelationManager.getEntityByProperty("imsi", imsi);
+		if (imsiMdnRelation != null) {
+			phone = imsiMdnRelation.getPhoneNum();
+		}
+		//从接口获取号码
+		if (phone == null || phone.length() == 0) {
+			phone = CTUtil.queryPhoneByIMSI(imsi);
+			if (!Utils.isEmpty(phone)) {
+				imsiMdnRelation = new ImsiMdnRelation();
+				imsiMdnRelation.setImsi(imsi);
+				imsiMdnRelation.setPhoneNum(phone);
+				imsiMdnRelationManager.save(imsiMdnRelation);
+			}
+		}
+		
+		if (Utils.isEmpty(phone)) {
+			code = "1004";
+			msg = "电话号码反查失败";
+		}
 		if (!Utils.isEmpty(code)) {
 			json.put("code", code);
 			json.put("msg", msg);
@@ -320,23 +667,23 @@ public class PackAction extends SimpleActionSupport {
 		
 		try {
 			//查看订单状态
-			TOrder order = orderManager.getByTradeId(tradeId);
+			TOrder order = orderManager.findByPhoneAndPushId(phone, pushId);
 			if (Utils.isEmpty(order)) {
 				json.put("code", "1005");
 				json.put("msg", "没有查询到订单信息");
 				StringUtil.printJson(response, json.toString());
 				return;
 			}
+			
 			String name = order.getName();
 			outTradeNo = order.getOutTradeNo();
 			Integer sellerId = order.getSellerId();
+			String tradeId = order.getTradeId();
 			if (order.getStatus() == 1) {
-				String phone = order.getPhoneNum();
-				
-				Integer pushId = order.getPushId();//推送id
 				PushPackage pushPackage = packageManager.get(pushId);
+				String monthProductId = pushPackage.getPackageUrl();
 				Integer type = pushPackage.getType();
-//				String channel = pushPackage.getRecChannel();
+				
 				boolean isSucc = false;
 				if (type == 1) {//天翼阅读
 					isSucc = empSecurityCodeValidate(tradeId, indentifyCode, phone, name);
@@ -358,12 +705,12 @@ public class PackAction extends SimpleActionSupport {
 						packageManager.addTodayLimit(order.getPushId());
 						//保存入t_order_self
 						orderManager.saveToSelf(order);
-						code = "1004";
+						code = "1006";
 						msg = "包月失败";
 					} else {
 						updateOrder(sellerId, tradeId, 3, reduce);
 						if (reduce == 1) {
-							code = "1004";
+							code = "1006";
 							msg = "包月失败";
 						} else {
 							code = "1";
@@ -374,7 +721,7 @@ public class PackAction extends SimpleActionSupport {
 				} else {
 					updateOrder(sellerId, tradeId, 4, reduce);
 					
-					code = "1004";
+					code = "1006";
 					msg = "包月失败";
 				}
 				json.put("code", code);
@@ -387,7 +734,7 @@ public class PackAction extends SimpleActionSupport {
 				json.put("out_trade_no", outTradeNo);
 				StringUtil.printJson(response, json.toString());
 			} else if (order.getStatus() == 4){
-				json.put("code", "1004");
+				json.put("code", "1006");
 				json.put("msg", "包月失败");
 				json.put("out_trade_no", outTradeNo);
 				StringUtil.printJson(response, json.toString());
@@ -397,69 +744,6 @@ public class PackAction extends SimpleActionSupport {
 			LogUtil.error(e.getMessage(), e);
 		}
 	}
-	
-//	public List<PushPackage> getPushPackages() {
-//		
-//	}
-	
-	/**
-	 * @功能：根据url获取内容
-	 * @author BOBO
-	 * @date 2014-3-31
-	 * @param url
-	 * @param phone
-	 * @return
-	 */
-//	public String[] getTextByUrl(String url, String phone, String ua) {
-//		String[] array = new String[2];
-//		if (phone == null) {
-//			return array;
-//		}
-//
-//		HttpClient httpClient = null;
-//		try {
-//			httpClient = new DefaultHttpClient();
-//			httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10000);//设置连接超时时间为10秒
-//			httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 10000);//设置无响应超时时间为10秒
-//			HttpGet httpGet = new HttpGet(url);
-//			httpGet.setHeader("X-Up-Calling-Line-ID", phone);
-//			httpGet.setHeader("User-Agent", ua);
-//			httpGet.setHeader("X-Forwarded-For","10.8.70.176");
-//			httpGet.setHeader("X-Source-ID","10.234.86.39");
-//			httpGet.setHeader("X-Real-Ip","61.130.246.71");
-//
-//			HttpResponse response = httpClient.execute(httpGet);
-//			if (response.getStatusLine().getStatusCode() == 200) {
-//				String responseString = EntityUtils.toString(response.getEntity());
-//				array[1] = responseString;
-//			}
-//			
-//			String sessionId = getSessionId(httpClient);
-//			array[0] = sessionId;
-//		} catch (Exception e) {
-//			LogUtil.error(e.getMessage(), e);
-//		} finally {
-//			if (httpClient != null) {
-//				httpClient.getConnectionManager().shutdown();
-//			}
-//		}
-//		return array;
-//	}
-	
-//	public static String getSessionId(HttpClient httpClient){
-//		CookieStore store = ((AbstractHttpClient) httpClient).getCookieStore();
-//		List<Cookie> list = store.getCookies();
-//		String sessionId = "";
-//		for (int i = 0; i < list.size(); i++) {
-//			Cookie cookie = (Cookie) list.get(i);
-//			String cookieName = cookie.getName();
-//			if (cookieName.equals("JSESSIONID")) {
-//				sessionId = cookie.getValue();
-//				break;
-//			}
-//		}
-//		return sessionId;
-//	}
 	
 	/**
 	 * @功能：解析包月页面，得到确认订购地址

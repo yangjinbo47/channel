@@ -395,7 +395,7 @@ public class CmccDmAction extends SimpleActionSupport{
 				String fee = StringUtils.substringBetween(reqBody, "<Cost>", "</Cost>");
 				
 				TOpenOrder tOpenOrder = openOrderManager.getOpenOrderByProperty("orderId", orderId);
-				if (!Utils.isEmpty(tOpenOrder)) {
+				if (Utils.isEmpty(tOpenOrder)) {
 					tOpenOrder = new TOpenOrder();
 					tOpenOrder.setImsi("4600");
 					tOpenOrder.setOrderId(orderId);
@@ -407,6 +407,11 @@ public class CmccDmAction extends SimpleActionSupport{
 					tOpenOrder.setSenderNumber("");
 					tOpenOrder.setMsgContent("");
 					tOpenOrder.setFee(Integer.parseInt(fee));
+					tOpenOrder.setStatus("3");
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					tOpenOrder.setPayTime(sdf.parse(chargeTime));
+					openOrderManager.save(tOpenOrder);
+				} else {
 					tOpenOrder.setStatus("3");
 					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					tOpenOrder.setPayTime(sdf.parse(chargeTime));

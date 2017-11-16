@@ -199,19 +199,4 @@ public class PackTest {
 		return requestConfig;
 	}
 	
-//	public static String getSessionId(HttpClient httpClient){
-//		CookieStore store = ((CloseableHttpClient) httpClient).getCookieStore();
-//		List<Cookie> list = store.getCookies();
-//		String sessionId = "";
-//		for (int i = 0; i < list.size(); i++) {
-//			Cookie cookie = (Cookie) list.get(i);
-//			String cookieName = cookie.getName();
-//			if (cookieName.equals("JSESSIONID")) {
-//				sessionId = cookie.getValue();
-//				break;
-//			}
-//		}
-//		return sessionId;
-//	}
-
 }

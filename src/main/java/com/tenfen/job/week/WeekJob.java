@@ -20,6 +20,7 @@ import com.tenfen.entity.operation.sms.TSmsApp;
 import com.tenfen.entity.operation.sms.TSmsSeller;
 import com.tenfen.util.LogUtil;
 import com.tenfen.util.SendMailUtil;
+import com.tenfen.util.Utils;
 import com.tenfen.www.common.Constants;
 import com.tenfen.www.service.operation.open.OpenAppManager;
 import com.tenfen.www.service.operation.open.OpenOrderManager;
@@ -67,7 +68,7 @@ public class WeekJob {
 			java.sql.Date end = new java.sql.Date(endDate.getTime());
 			
 			Map<Integer, List<OpenDailyBean>> openMap = new HashMap<Integer, List<OpenDailyBean>>();
-			List<TOpenSeller> openSellerList = openSellerManager.findAllOpenSellerList(Constants.USER_TYPE.TENFEN.getValue());
+			List<TOpenSeller> openSellerList = openSellerManager.findAllOpenSellerList(Constants.USER_TYPE.ALL.getValue());
 			for (TOpenSeller tOpenSeller : openSellerList) {
 				List<OpenDailyBean> openDailyBeans = new ArrayList<OpenDailyBean>();//app统计数据
 				OpenDailyBean openDailyBean = null;
@@ -81,68 +82,84 @@ public class WeekJob {
 				allStatusMap.putAll(noPayMap);
 				allStatusMap.putAll(succPayMap);
 				allStatusMap.putAll(failPayMap);
-				Map<Integer, String> succPayReduceMap = openOrderManager.mapReduceAppIds(sellerId, start, end, "3", 0);//扣量后的成功数据
+//				Map<Integer, String> succPayReduceMap = openOrderManager.mapReduceAppIds(sellerId, start, end, "3", 0);//扣量后的成功数据
 				
 				for (Integer appId : allStatusMap.keySet()) {
 					haveData = true;
 					Integer noPayInt = null;
+					Integer noPayUserInt = null;
 					if (noPayMap.size() == 0) {
 						noPayInt = 0;
+						noPayUserInt = 0;
 					} else {
 						JSONObject noPayJson = JSONObject.parseObject(noPayMap.get(appId));
 						noPayInt = noPayJson == null ? 0 : noPayJson.getInteger("count");//未支付请求数
 						if (noPayInt == null) {
 							noPayInt = 0;
 						}
+						noPayUserInt = noPayJson == null ? 0 : noPayJson.getInteger("user");//未支付用户数
+						if (noPayUserInt == null) {
+							noPayUserInt = 0;
+						}
 					}
 					Integer failInt = null;
+					Integer failUserInt = null;
 					if (failPayMap.size() == 0) {
 						failInt = 0;
+						failUserInt = 0;
 					} else {
 						JSONObject failPayJson = JSONObject.parseObject(failPayMap.get(appId));
 						failInt = failPayJson == null ? 0 : failPayJson.getInteger("count");//失败支付请求数
 						if (failInt == null) {
 							failInt = 0;
 						}
+						failUserInt = failPayJson == null ? 0 : failPayJson.getInteger("user");//失败用户数
+						if (failUserInt == null) {
+							failUserInt = 0;
+						}
 					}
 					Integer succInt = null;
+					Integer succUserInt = null;
 					Integer feeInt = null;
+					Integer succReduceInt = null;
+					Integer feeReduceInt = null;
 					if (succPayMap.size() == 0) {
 						succInt = 0;
+						succUserInt = 0;
 						feeInt = 0;
-					} else {						
+						succReduceInt = 0;
+						feeReduceInt = 0;
+					} else {
 						JSONObject succPayJson = JSONObject.parseObject(succPayMap.get(appId));
 						succInt = succPayJson == null ? 0 : succPayJson.getInteger("count");//成功支付请求数
 						if (succInt == null) {
 							succInt = 0;
 						}
+						succUserInt = succPayJson == null ? 0 : succPayJson.getInteger("user");//成功用户数
+						if (succUserInt == null) {
+							succUserInt = 0;
+						}
 						feeInt = succPayJson == null ? 0 : succPayJson.getInteger("fee");//成功计费金额
 						if (feeInt == null) {
 							feeInt = 0;
 						}
-						feeInt = feeInt/100;//fee转化成单位元
-					}
-					Integer succReduceInt = null;
-					Integer feeReduceInt = null;
-					if (succPayReduceMap.size() == 0) {
-						succReduceInt = 0;
-						feeReduceInt = 0;
-					} else {
-						JSONObject succPayJson = JSONObject.parseObject(succPayReduceMap.get(appId));
-						succReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("count");//成功支付请求数（扣量后）
+						succReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("countReduce");//成功支付请求数(扣)
 						if (succReduceInt == null) {
 							succReduceInt = 0;
 						}
-						feeReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("fee");//成功计费金额（扣量后）
+						feeReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("feeReduce");//成功计费金额
 						if (feeReduceInt == null) {
 							feeReduceInt = 0;
 						}
-						feeReduceInt = feeReduceInt/100;//fee转化成单位元
+						feeInt = feeInt/100;//fee转化成单位元
+						feeReduceInt = feeReduceInt/100;
 					}
 					
 					Integer orderReqInt = noPayInt+failInt+succInt;
-					Long users_num = openOrderManager.mapReduceUserCount(sellerId, appId, start, end);
-					Long users_succ_num = openOrderManager.mapReduceSuccUserCount(sellerId, appId, start, end);
+//					Long users_num = openOrderManager.mapReduceUserCount(sellerId, appId, start, end);
+//					Long users_succ_num = openOrderManager.mapReduceSuccUserCount(sellerId, appId, start, end);
+					Integer users_num = noPayUserInt + failUserInt + succUserInt;
+					Integer users_succ_num = succUserInt;
 					
 					DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
 					//mr/mo转化率
@@ -178,26 +195,29 @@ public class WeekJob {
 						reqfString = df.format(reqf*100) + "%";//返回的是String类型的
 					}
 					
-					TOpenApp tOpenApp = openAppManager.get(appId);
-					String appName = tOpenApp.getName();
-					
-					openDailyBean = new OpenDailyBean();
-					openDailyBean.setSellerId(sellerId);
-					openDailyBean.setAppId(appId);
-					openDailyBean.setSellerName(sellerName);
-					openDailyBean.setAppName(appName);
-					openDailyBean.setOrderReq(orderReqInt);
-					openDailyBean.setSucc(succInt);
-					openDailyBean.setSuccReduce(succReduceInt);
-					openDailyBean.setFail(failInt);
-					openDailyBean.setNoPay(noPayInt);
-					openDailyBean.setFee(feeInt);
-					openDailyBean.setFeeReduce(feeReduceInt);
-					openDailyBean.setUserNum(users_num);
-					openDailyBean.setUserSuccNum(users_succ_num);
-					openDailyBean.setRate(fString);
-					openDailyBean.setReqRate(reqfString);
-					openDailyBeans.add(openDailyBean);
+//					TOpenApp tOpenApp = openAppManager.get(appId);
+					TOpenApp tOpenApp = openAppManager.getOpenAppByProperty("id", appId);
+					if (!Utils.isEmpty(tOpenApp)) {
+						String appName = tOpenApp.getName();
+						
+						openDailyBean = new OpenDailyBean();
+						openDailyBean.setSellerId(sellerId);
+						openDailyBean.setAppId(appId);
+						openDailyBean.setSellerName(sellerName);
+						openDailyBean.setAppName(appName);
+						openDailyBean.setOrderReq(orderReqInt);
+						openDailyBean.setSucc(succInt);
+						openDailyBean.setSuccReduce(succReduceInt);
+						openDailyBean.setFail(failInt);
+						openDailyBean.setNoPay(noPayInt);
+						openDailyBean.setFee(feeInt);
+						openDailyBean.setFeeReduce(feeReduceInt);
+						openDailyBean.setUserNum(users_num);
+						openDailyBean.setUserSuccNum(users_succ_num);
+						openDailyBean.setRate(fString);
+						openDailyBean.setReqRate(reqfString);
+						openDailyBeans.add(openDailyBean);
+					}
 				}//end for app map
 				openMap.put(sellerId, openDailyBeans);
 			}//end sellerList
@@ -227,7 +247,7 @@ public class WeekJob {
 			
 			//短代相关
 			Map<Integer, List<SmsDailyBean>> smsMap = new HashMap<Integer, List<SmsDailyBean>>();
-			List<TSmsSeller> smsSellerList = smsSellerManager.findAllSmsSellerList(Constants.USER_TYPE.TENFEN.getValue());
+			List<TSmsSeller> smsSellerList = smsSellerManager.findAllSmsSellerList(Constants.USER_TYPE.ALL.getValue());
 			for (TSmsSeller tSmsSeller : smsSellerList) {
 				List<SmsDailyBean> smsDailyBeans = new ArrayList<SmsDailyBean>();//app统计数据
 				SmsDailyBean smsDailyBean = null;
@@ -241,68 +261,84 @@ public class WeekJob {
 				allStatusMap.putAll(noPayMap);
 				allStatusMap.putAll(succPayMap);
 				allStatusMap.putAll(failPayMap);
-				Map<Integer, String> succPayReduceMap = smsOrderManager.mapReduceAppIds(sellerId, start, end, "3", 0);//扣量后的成功数据
+//				Map<Integer, String> succPayReduceMap = openOrderManager.mapReduceAppIds(sellerId, start, end, "3", 0);//扣量后的成功数据
 				
 				for (Integer appId : allStatusMap.keySet()) {
 					haveData = true;
 					Integer noPayInt = null;
+					Integer noPayUserInt = null;
 					if (noPayMap.size() == 0) {
 						noPayInt = 0;
+						noPayUserInt = 0;
 					} else {
 						JSONObject noPayJson = JSONObject.parseObject(noPayMap.get(appId));
 						noPayInt = noPayJson == null ? 0 : noPayJson.getInteger("count");//未支付请求数
 						if (noPayInt == null) {
 							noPayInt = 0;
 						}
+						noPayUserInt = noPayJson == null ? 0 : noPayJson.getInteger("user");//未支付用户数
+						if (noPayUserInt == null) {
+							noPayUserInt = 0;
+						}
 					}
 					Integer failInt = null;
+					Integer failUserInt = null;
 					if (failPayMap.size() == 0) {
 						failInt = 0;
+						failUserInt = 0;
 					} else {
 						JSONObject failPayJson = JSONObject.parseObject(failPayMap.get(appId));
 						failInt = failPayJson == null ? 0 : failPayJson.getInteger("count");//失败支付请求数
 						if (failInt == null) {
 							failInt = 0;
 						}
+						failUserInt = failPayJson == null ? 0 : failPayJson.getInteger("user");//失败用户数
+						if (failUserInt == null) {
+							failUserInt = 0;
+						}
 					}
 					Integer succInt = null;
+					Integer succUserInt = null;
 					Integer feeInt = null;
+					Integer succReduceInt = null;
+					Integer feeReduceInt = null;
 					if (succPayMap.size() == 0) {
 						succInt = 0;
+						succUserInt = 0;
 						feeInt = 0;
+						succReduceInt = 0;
+						feeReduceInt = 0;
 					} else {
 						JSONObject succPayJson = JSONObject.parseObject(succPayMap.get(appId));
 						succInt = succPayJson == null ? 0 : succPayJson.getInteger("count");//成功支付请求数
 						if (succInt == null) {
 							succInt = 0;
 						}
+						succUserInt = succPayJson == null ? 0 : succPayJson.getInteger("user");//成功用户数
+						if (succUserInt == null) {
+							succUserInt = 0;
+						}
 						feeInt = succPayJson == null ? 0 : succPayJson.getInteger("fee");//成功计费金额
 						if (feeInt == null) {
 							feeInt = 0;
 						}
-						feeInt = feeInt/100;//fee转化成单位元
-					}
-					Integer succReduceInt = null;
-					Integer feeReduceInt = null;
-					if (succPayReduceMap.size() == 0) {
-						succReduceInt = 0;
-						feeReduceInt = 0;
-					} else {
-						JSONObject succPayJson = JSONObject.parseObject(succPayReduceMap.get(appId));
-						succReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("count");//成功支付请求数（扣量后）
+						succReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("countReduce");//成功支付请求数(扣)
 						if (succReduceInt == null) {
 							succReduceInt = 0;
 						}
-						feeReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("fee");//成功计费金额（扣量后）
+						feeReduceInt = succPayJson == null ? 0 : succPayJson.getInteger("feeReduce");//成功计费金额
 						if (feeReduceInt == null) {
 							feeReduceInt = 0;
 						}
-						feeReduceInt = feeReduceInt/100;//fee转化成单位元
+						feeInt = feeInt/100;//fee转化成单位元
+						feeReduceInt = feeReduceInt/100;
 					}
 					
 					Integer orderReqInt = noPayInt+failInt+succInt;
-					Long users_num = smsOrderManager.mapReduceUserCount(sellerId, appId, start, end);
-					Long users_succ_num = smsOrderManager.mapReduceSuccUserCount(sellerId, appId, start, end);
+//					Long users_num = openOrderManager.mapReduceUserCount(sellerId, appId, start, end);
+//					Long users_succ_num = openOrderManager.mapReduceSuccUserCount(sellerId, appId, start, end);
+					Integer users_num = noPayUserInt + failUserInt + succUserInt;
+					Integer users_succ_num = succUserInt;
 					
 					DecimalFormat df = new DecimalFormat("0.0");//格式化小数，不足的补0
 					//mr/mo转化率
@@ -338,26 +374,28 @@ public class WeekJob {
 						reqfString = df.format(reqf*100) + "%";//返回的是String类型的
 					}
 					
-					TSmsApp tSmsApp = smsAppManager.get(appId);
-					String appName = tSmsApp.getName();
-					
-					smsDailyBean = new SmsDailyBean();
-					smsDailyBean.setSellerId(sellerId);
-					smsDailyBean.setAppId(appId);
-					smsDailyBean.setSellerName(sellerName);
-					smsDailyBean.setAppName(appName);
-					smsDailyBean.setOrderReq(orderReqInt);
-					smsDailyBean.setSucc(succInt);
-					smsDailyBean.setSuccReduce(succReduceInt);
-					smsDailyBean.setFail(failInt);
-					smsDailyBean.setNoPay(noPayInt);
-					smsDailyBean.setFee(feeInt);
-					smsDailyBean.setFeeReduce(feeReduceInt);
-					smsDailyBean.setUserNum(users_num);
-					smsDailyBean.setUserSuccNum(users_succ_num);
-					smsDailyBean.setRate(fString);
-					smsDailyBean.setReqRate(reqfString);
-					smsDailyBeans.add(smsDailyBean);
+					TSmsApp tSmsApp = smsAppManager.getSmsAppByProperty("id", appId);
+					if (!Utils.isEmpty(tSmsApp)) {
+						String appName = tSmsApp.getName();
+						
+						smsDailyBean = new SmsDailyBean();
+						smsDailyBean.setSellerId(sellerId);
+						smsDailyBean.setAppId(appId);
+						smsDailyBean.setSellerName(sellerName);
+						smsDailyBean.setAppName(appName);
+						smsDailyBean.setOrderReq(orderReqInt);
+						smsDailyBean.setSucc(succInt);
+						smsDailyBean.setSuccReduce(succReduceInt);
+						smsDailyBean.setFail(failInt);
+						smsDailyBean.setNoPay(noPayInt);
+						smsDailyBean.setFee(feeInt);
+						smsDailyBean.setFeeReduce(feeReduceInt);
+						smsDailyBean.setUserNum(users_num);
+						smsDailyBean.setUserSuccNum(users_succ_num);
+						smsDailyBean.setRate(fString);
+						smsDailyBean.setReqRate(reqfString);
+						smsDailyBeans.add(smsDailyBean);
+					}
 				}//end for app map
 				smsMap.put(sellerId, smsDailyBeans);
 			}//end sellerList

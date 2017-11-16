@@ -104,6 +104,21 @@ public class Constants {
 		}
 	}
 	
+	public static enum PACKAGE_SELLER_STATUS {
+
+		NORMAL(1),FORBID(0);
+
+		private Integer value;
+
+		PACKAGE_SELLER_STATUS(Integer value) {
+			this.value = value;
+		}
+
+		public Integer getValue() {
+			return value;
+		}
+	}
+	
 	/**
 	 * 包月包状态
 	 * @author BOBO

@@ -1,6 +1,9 @@
 package com.tenfen.www.dao.operation.open;
 
+import java.sql.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
@@ -45,5 +48,20 @@ public class OpenOrderHistoryDao extends CustomHibernateDao<TOpenOrderHistory, L
 		return tOpenOrderHistory;
 	}
 	
+	public List<TOpenOrderHistory> getOrderList(Integer sellerId, Date startTime, Date endTime) {
+		List<TOpenOrderHistory> list = null;
+		try {
+			String hql = "select t from TOpenOrderHistory t where t.createTime > :startTime and t.createTime < :endTime and t.sellerId=:sellerId";
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("startTime", startTime);
+			map.put("endTime", endTime);
+			map.put("sellerId", sellerId);
+			
+			list = find(hql, map);
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+		}
+		return list;
+	}
 	
 }
