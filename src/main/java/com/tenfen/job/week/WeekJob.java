@@ -68,7 +68,7 @@ public class WeekJob {
 			java.sql.Date end = new java.sql.Date(endDate.getTime());
 			
 			Map<Integer, List<OpenDailyBean>> openMap = new HashMap<Integer, List<OpenDailyBean>>();
-			List<TOpenSeller> openSellerList = openSellerManager.findAllOpenSellerList(Constants.USER_TYPE.ALL.getValue());
+			List<TOpenSeller> openSellerList = openSellerManager.findAllOpenSellerList(Constants.USER_TYPE.TENFEN.getValue());
 			for (TOpenSeller tOpenSeller : openSellerList) {
 				List<OpenDailyBean> openDailyBeans = new ArrayList<OpenDailyBean>();//app统计数据
 				OpenDailyBean openDailyBean = null;
@@ -247,7 +247,7 @@ public class WeekJob {
 			
 			//短代相关
 			Map<Integer, List<SmsDailyBean>> smsMap = new HashMap<Integer, List<SmsDailyBean>>();
-			List<TSmsSeller> smsSellerList = smsSellerManager.findAllSmsSellerList(Constants.USER_TYPE.ALL.getValue());
+			List<TSmsSeller> smsSellerList = smsSellerManager.findAllSmsSellerList(Constants.USER_TYPE.TENFEN.getValue());
 			for (TSmsSeller tSmsSeller : smsSellerList) {
 				List<SmsDailyBean> smsDailyBeans = new ArrayList<SmsDailyBean>();//app统计数据
 				SmsDailyBean smsDailyBean = null;
@@ -421,16 +421,15 @@ public class WeekJob {
 			
 			
 			
-			String[] mailToList = new String[6];
+			String[] mailToList = new String[5];
 			mailToList[0] = "icy.wang@tenfen.com";
 			mailToList[1] = "yangjinbo48@sina.com";
 			mailToList[2] = "wang.kun@slxz.com.cn";
 			mailToList[3] = "gao.feng@tenfen.com";
-			mailToList[4] = "yan.qun@tenfen.com";
-			mailToList[5] = "sun.quanzhi@tenfen.com";
+			mailToList[4] = "sun.quanzhi@tenfen.com";
 			
 			//发送邮件
-			String mailTitle = sdf.format(calendar.getTime())+"云支付周报";
+			String mailTitle = startString + "~" + endString+"云支付周报";
 			SendMailUtil.sendHtmlMail(mailLoginName, mailLoginPwd, mailSmtp, mailToList, mailTitle, sb.toString());
 			
 		} catch (Exception e) {

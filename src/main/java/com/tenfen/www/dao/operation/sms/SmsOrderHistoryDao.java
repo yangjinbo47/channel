@@ -1,6 +1,9 @@
 package com.tenfen.www.dao.operation.sms;
 
+import java.sql.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
@@ -43,6 +46,21 @@ public class SmsOrderHistoryDao extends CustomHibernateDao<TSmsOrderHistory, Lon
 			logger.error(e.getMessage(), e);
 		}
 		return tSmsOrderHistory;
+	}
+	
+	public List<TSmsOrderHistory> getSuccOrderList(Date startTime, Date endTime) {
+		List<TSmsOrderHistory> list = null;
+		try {
+			String hql = "select t from TSmsOrderHistory t where t.createTime > :startTime and t.createTime < :endTime and t.status=3";
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("startTime", startTime);
+			map.put("endTime", endTime);
+			
+			list = find(hql, map);
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+		}
+		return list;
 	}
 	
 	

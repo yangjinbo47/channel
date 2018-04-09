@@ -24,7 +24,13 @@ Ext.define('Ext.ux.form.ISearchField', {
         this.triggerCell.item(1).setDisplayed(this.hideTrigger2);
     },
 
-    onTrigger1Click : Ext.emptyFn,
+//    onTrigger1Click : Ext.emptyFn,
+    onTrigger1Click : function() {
+    	var me = this;
+    	me.setValue('');
+        me.triggerCell.item(0).setDisplayed(false);
+        me.updateLayout();
+    },
 
     onTrigger2Click : Ext.emptyFn
 });

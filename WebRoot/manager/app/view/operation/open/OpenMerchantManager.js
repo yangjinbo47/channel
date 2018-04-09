@@ -79,7 +79,9 @@ Ext.define('CMS.view.operation.open.OpenMerchantManager', {
 			        {"id":11, "name":"天翼空间-朗天"},
 			        {"id":12, "name":"天翼空间-通用"},
 			        {"id":13, "name":"天翼空间-旭游"},
-			        {"id":14, "name":"咪咕动漫wap"}
+			        {"id":14, "name":"咪咕动漫wap"},
+			        {"id":15, "name":"MM网页支付"},
+			        {"id":20, "name":"联通小额支付"}
 			    ]
 			}),
 	    	displayField : 'name',
@@ -112,6 +114,10 @@ Ext.define('CMS.view.operation.open.OpenMerchantManager', {
 				return '天翼空间-旭游';
 			} else if (value == '14'){
 				return '咪咕动漫wap';
+			} else if (value == '15'){
+				return 'MM网页支付';
+			} else if (value == '20'){
+				return '联通小额支付';
 			}
 		}
 	}],

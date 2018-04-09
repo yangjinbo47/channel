@@ -64,4 +64,19 @@ public class OpenOrderHistoryDao extends CustomHibernateDao<TOpenOrderHistory, L
 		return list;
 	}
 	
+	public List<TOpenOrderHistory> getSuccOrderList(Date startTime, Date endTime) {
+		List<TOpenOrderHistory> list = null;
+		try {
+			String hql = "select t from TOpenOrderHistory t where t.createTime > :startTime and t.createTime < :endTime and t.status=3";
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("startTime", startTime);
+			map.put("endTime", endTime);
+			
+			list = find(hql, map);
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+		}
+		return list;
+	}
+	
 }

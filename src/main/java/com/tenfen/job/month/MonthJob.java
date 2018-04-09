@@ -54,23 +54,20 @@ public class MonthJob {
 		try {
 			boolean haveData = false;//是否有数据，有数据则发送邮件
 			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.MONTH, -1);
-			calendar.set(Calendar.DAY_OF_MONTH, 1);
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			//获取当日时间区间
 			SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
+			calendar.set(Calendar.DAY_OF_MONTH, 1);
+			String endString = sdf.format(calendar.getTime()) + " 00:00:00";
+			Date endDate = sdfSql.parse(endString);
+			java.sql.Date end = new java.sql.Date(endDate.getTime());
+			
+			calendar.add(Calendar.MONTH, -1);
 			String startString = sdf.format(calendar.getTime()) + " 00:00:00";
 			Date startDate = sdfSql.parse(startString);
 			java.sql.Date start = new java.sql.Date(startDate.getTime());
 			
-			calendar.add(Calendar.MONTH, 1);
-			calendar.add(Calendar.DAY_OF_MONTH, -1);
-			String endString = sdf.format(calendar.getTime()) + " 23:59:59";
-			Date endDate = sdfSql.parse(endString);
-			java.sql.Date end = new java.sql.Date(endDate.getTime());
-			
 			Map<Integer, List<OpenDailyBean>> openMap = new HashMap<Integer, List<OpenDailyBean>>();
-			List<TOpenSeller> openSellerList = openSellerManager.findAllOpenSellerList(Constants.USER_TYPE.ALL.getValue());
+			List<TOpenSeller> openSellerList = openSellerManager.findAllOpenSellerList(Constants.USER_TYPE.TENFEN.getValue());
 			for (TOpenSeller tOpenSeller : openSellerList) {
 				List<OpenDailyBean> openDailyBeans = new ArrayList<OpenDailyBean>();//app统计数据
 				OpenDailyBean openDailyBean = null;
@@ -249,7 +246,7 @@ public class MonthJob {
 			
 			//短代相关
 			Map<Integer, List<SmsDailyBean>> smsMap = new HashMap<Integer, List<SmsDailyBean>>();
-			List<TSmsSeller> smsSellerList = smsSellerManager.findAllSmsSellerList(Constants.USER_TYPE.ALL.getValue());
+			List<TSmsSeller> smsSellerList = smsSellerManager.findAllSmsSellerList(Constants.USER_TYPE.TENFEN.getValue());
 			for (TSmsSeller tSmsSeller : smsSellerList) {
 				List<SmsDailyBean> smsDailyBeans = new ArrayList<SmsDailyBean>();//app统计数据
 				SmsDailyBean smsDailyBean = null;
@@ -423,16 +420,15 @@ public class MonthJob {
 			
 			
 			
-			String[] mailToList = new String[6];
+			String[] mailToList = new String[5];
 			mailToList[0] = "icy.wang@tenfen.com";
 			mailToList[1] = "yangjinbo48@sina.com";
 			mailToList[2] = "wang.kun@slxz.com.cn";
 			mailToList[3] = "gao.feng@tenfen.com";
-			mailToList[4] = "yan.qun@tenfen.com";
-			mailToList[5] = "sun.quanzhi@tenfen.com";
+			mailToList[4] = "sun.quanzhi@tenfen.com";
 			
 			//发送邮件
-			String mailTitle = sdf.format(calendar.getTime())+"云支付月报";
+			String mailTitle = calendar.get(Calendar.YEAR)+"年"+(calendar.get(Calendar.MONTH)+1)+"月云支付月报";
 			SendMailUtil.sendHtmlMail(mailLoginName, mailLoginPwd, mailSmtp, mailToList, mailTitle, sb.toString());
 			
 		} catch (Exception e) {

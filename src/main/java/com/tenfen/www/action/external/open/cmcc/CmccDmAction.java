@@ -1,4 +1,4 @@
-package com.tenfen.www.action.external.open.cmccdm;
+package com.tenfen.www.action.external.open.cmcc;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

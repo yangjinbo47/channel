@@ -391,7 +391,7 @@ public class PackAction extends SimpleActionSupport {
 				for (TPushSellerPackages tPushSellerPackages : sellerPackages) {
 					PushPackage pushPackage = tPushSellerPackages.getPushPackage();
 					if (price == pushPackage.getPrice() || 481 == pushPackage.getId()) {
-						boolean flag = packageValidate(tyu, tPushSellerPackages, province);//验证包月包状态
+						boolean flag = packageValidate(tyu, pushPackage, province);//验证包月包状态
 						if (flag) {
 							LogUtil.log("packageInfo===="+phone + "进入" + pushPackage.getPackageName());
 							String amount = String.valueOf(pushPackage.getPrice());
@@ -890,20 +890,25 @@ public class PackAction extends SimpleActionSupport {
 	 * @return true - 可用
 	 * 		   false - 不可用
 	 */
-	public boolean packageValidate(TyreadUtil tyu, TPushSellerPackages tPushSellerPackages, String province) {
+	public boolean packageValidate(TyreadUtil tyu, PushPackage pushPackage, String province) {
 		boolean ret = true;
 		try {
 			ICacheClient mc = cacheFactory.getCommonCacheClient();
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 			
 			double rate = new Random().nextDouble();
-			PushPackage pushPackage = tPushSellerPackages.getPushPackage();
+//			PushPackage pushPackage = tPushSellerPackages.getPushPackage();
 			if (481 == pushPackage.getId() && rate > 0.2) {
 				return false;
 			}
 			//该渠道设置的包推广量是否到达
-			if (tPushSellerPackages.getPackageLimit() != -1) {//不限量
-				if (tPushSellerPackages.getPackageToday() >= tPushSellerPackages.getPackageLimit()) {
+//			if (tPushSellerPackages.getPackageLimit() != -1) {//不限量
+//				if (tPushSellerPackages.getPackageToday() >= tPushSellerPackages.getPackageLimit()) {
+//					return false;
+//				}
+//			}
+			if (pushPackage.getPackageLimit() != -1) {//不限量
+				if (pushPackage.getPackageToday() >= pushPackage.getPackageLimit()) {
 					return false;
 				}
 			}

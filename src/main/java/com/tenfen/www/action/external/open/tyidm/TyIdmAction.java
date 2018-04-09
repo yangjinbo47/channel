@@ -169,7 +169,7 @@ public class TyIdmAction extends SimpleActionSupport{
 			String phone = null;
 			if (imsi.length() == 11) {
 				phone = imsi;
-			} else {				
+			} else {
 				ImsiMdnRelation imsiMdnRelation = imsiMdnRelationManager.getEntityByProperty("imsi", imsi);
 				if (imsiMdnRelation != null) {
 					phone = imsiMdnRelation.getPhoneNum();

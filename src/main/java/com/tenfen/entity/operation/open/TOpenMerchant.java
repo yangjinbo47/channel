@@ -113,6 +113,12 @@ public class TOpenMerchant extends IdEntity {
 		case 14:
 			joinTypeString = "咪咕动漫wap";
 			break;
+		case 15:
+			joinTypeString = "MM网页支付";
+			break;
+		case 20:
+			joinTypeString = "联通小额支付";
+			break;
 		default:
 			joinTypeString = "未找到接入类型";
 			break;

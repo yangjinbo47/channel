@@ -77,6 +77,21 @@ public class OpenOrderDao extends CustomHibernateDao<TOpenOrder, Long>{
 		return list;
 	}
 	
+	public List<TOpenOrder> getSuccOrderList(Date startTime, Date endTime) {
+		List<TOpenOrder> list = null;
+		try {
+			String hql = "select t from TOpenOrder t where t.createTime > :startTime and t.createTime < :endTime and t.status=3";
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("startTime", startTime);
+			map.put("endTime", endTime);
+			
+			list = find(hql, map);
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+		}
+		return list;
+	}
+	
 	public List<TOpenOrder> getOrderList(Integer sellerId, Date startTime, Date endTime) {
 		List<TOpenOrder> list = null;
 		try {

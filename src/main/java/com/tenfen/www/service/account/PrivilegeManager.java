@@ -65,35 +65,73 @@ public class PrivilegeManager {
 	 */
 	@Transactional
 	public void delete(Privilege privilege) {
-		Integer parentId = privilege.getParentid();
 		//判断是什么级别的菜单
-		if (privilege.getIsleaf() == 1) {//是叶子节点的菜单
+		if (privilege.getMenulevel() == 1) {
+			if (privilege.getIsleaf() == 1) {//一级叶子节点
+				Integer privilegeid = privilege.getPrivilegeid();
+				//直接删除权限
+				privilegeDao.delete(privilege);
+				//删除角色权限关联关系
+				privilegeDao.deleteRolePrivilege(privilegeid);
+			} else {//一级非叶子节点
+				Integer privilegeid = privilege.getPrivilegeid();
+				//直接删除权限
+				privilegeDao.delete(privilege);
+				//删除角色权限关联关系
+				privilegeDao.deleteRolePrivilege(privilegeid);
+				//删除该节点下所有节点
+				List<Privilege> children = privilegeDao.getSecondPrivilege(privilegeid);
+				for (Privilege child : children) {
+					privilegeDao.delete(child);
+					privilegeDao.deleteRolePrivilege(child.getPrivilegeid());
+				}
+			}
+		} else if (privilege.getMenulevel() == 2) {//只有二级菜单，二级必是叶子，直接删除
 			Integer privilegeid = privilege.getPrivilegeid();
+			Integer parentid = privilege.getParentid();
 			//直接删除权限
 			privilegeDao.delete(privilege);
 			//删除角色权限关联关系
 			privilegeDao.deleteRolePrivilege(privilegeid);
 			//查询父节点下是否还有子节点
-			Integer childrenNum = privilegeDao.getChildrenNum(parentId) - 1;//-1为了未提交数据前产生的脏数据预减1
-			if (childrenNum == 0) {//无
+			Integer childrenNum = privilegeDao.getChildrenNum(parentid) - 1;//-1为了未提交数据前产生的脏数据预减1
+			if (childrenNum == 0) {
 				//更新父节点的leaf状态
-				Privilege parentNode = privilegeDao.get(parentId);
+				Privilege parentNode = privilegeDao.get(parentid);
 				parentNode.setIsleaf(1);
 				privilegeDao.saveEntity(parentNode);
-			} else {//有
-				//父节点不变化
-			}
-		} else {//非叶子节点菜单
-			//查询包括父节点及所有子节点
-			List<Privilege> privileges = privilegeDao.findBy("parentid", parentId);
-			for (Privilege privilegeNode : privileges) {
-				Integer privilegeid = privilegeNode.getPrivilegeid();
-				//逐个删除子节点
-				privilegeDao.delete(privilegeNode);
-				//逐个删除角色权限关联关系
-				privilegeDao.deleteRolePrivilege(privilegeid);
 			}
 		}
+		
+//		Integer parentId = privilege.getParentid();
+//		//判断是什么级别的菜单
+//		if (privilege.getIsleaf() == 1) {//是叶子节点的菜单
+//			Integer privilegeid = privilege.getPrivilegeid();
+//			//直接删除权限
+//			privilegeDao.delete(privilege);
+//			//删除角色权限关联关系
+//			privilegeDao.deleteRolePrivilege(privilegeid);
+//			//查询父节点下是否还有子节点
+//			Integer childrenNum = privilegeDao.getChildrenNum(parentId) - 1;//-1为了未提交数据前产生的脏数据预减1
+//			if (childrenNum == 0) {//无
+//				//更新父节点的leaf状态
+//				Privilege parentNode = privilegeDao.get(parentId);
+//				parentNode.setIsleaf(1);
+//				privilegeDao.saveEntity(parentNode);
+//			} else {//有
+//				//父节点不变化
+//			}
+//		} else {//非叶子节点菜单
+//			//查询包括父节点及所有子节点
+//			List<Privilege> privileges = privilegeDao.findBy("parentid", parentId);
+//			for (Privilege privilegeNode : privileges) {
+//				Integer privilegeid = privilegeNode.getPrivilegeid();
+//				//逐个删除子节点
+//				privilegeDao.delete(privilegeNode);
+//				//逐个删除角色权限关联关系
+//				privilegeDao.deleteRolePrivilege(privilegeid);
+//			}
+//		}
 	}
 	
 }

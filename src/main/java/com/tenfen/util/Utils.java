@@ -427,7 +427,7 @@ public class Utils {
 				phoneNum = phoneNum.substring(phoneNum.length() - 11, phoneNum.length());
 			}
 			if (checkCellPhone(phoneNum)) {
-				List<String> chinaTel = Arrays.asList(new String[] { "133", "153", "189", "180", "181", "170", "177"});
+				List<String> chinaTel = Arrays.asList(new String[] { "133", "153", "180", "181", "189", "170", "173", "177"});
 				return chinaTel.contains(phoneNum.substring(0, 3));
 			}
 		}

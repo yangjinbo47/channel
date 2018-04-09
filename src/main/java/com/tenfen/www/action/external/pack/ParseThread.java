@@ -74,7 +74,7 @@ public class ParseThread implements Runnable {
 			
 			orderUrl = "http://wap.tyread.com" + orderUrl;
 			String tradeId = goPreBuySubmit(orderUrl, phone, ua, client, context, cookieStore);
-			
+			LogUtil.log("tyread wapparse:phone="+phone+",tradeId="+tradeId);
 			//发送验证码
 			boolean isSucc = empSecurityCodeFetch(tradeId, phone);
 			//保存入库
@@ -245,6 +245,7 @@ public class ParseThread implements Runnable {
 			HttpSendClient httpSendClient = new HttpSendClient();
 			HttpSendResponse culverinResponse = httpSendClient.executeHttpPost(request);
 			if (!Utils.isEmpty(culverinResponse)) {
+				LogUtil.log("culverinResponse:"+culverinResponse.getResponseBody());
 				isSucc = Boolean.parseBoolean(StringUtils.substringBetween(culverinResponse.getResponseBody(), "<isSuccess>", "</isSuccess>"));
 			}
 		} catch (Exception e) {

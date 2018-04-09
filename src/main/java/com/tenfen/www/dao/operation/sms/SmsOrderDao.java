@@ -84,6 +84,21 @@ public class SmsOrderDao extends CustomHibernateDao<TSmsOrder, Long>{
 		return list;
 	}
 	
+	public List<TSmsOrder> getSuccOrderList(Date startTime, Date endTime) {
+		List<TSmsOrder> list = null;
+		try {
+			String hql = "select t from TSmsOrder t where t.createTime > :startTime and t.createTime < :endTime and t.status=3";
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("startTime", startTime);
+			map.put("endTime", endTime);
+			
+			list = find(hql, map);
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+		}
+		return list;
+	}
+	
 	public List<TSmsOrder> getOrderList(Integer sellerId, Date startTime, Date endTime) {
 		List<TSmsOrder> list = null;
 		try {

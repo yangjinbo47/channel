@@ -434,6 +434,8 @@ public class MongoTOpenOrderDao extends MongoGenDao<MongoTOpenOrder>{
 			});
 		} catch (Exception e) {
 			LogUtil.error(e.getMessage(), e);
+		} finally {
+			mongoTemplate.dropCollection(temporaryCollection);
 		}
 		return returnMap;
 	}

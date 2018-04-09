@@ -242,20 +242,17 @@ public class OpenMonthJob {
 		try {
 			boolean haveData = false;//是否有数据，有数据则发送邮件
 			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.MONTH, -1);
-			calendar.set(Calendar.DAY_OF_MONTH, 1);
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			//获取当日时间区间
 			SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//格式化时间
+			calendar.set(Calendar.DAY_OF_MONTH, 1);
+			String endString = sdf.format(calendar.getTime()) + " 00:00:00";
+			Date endDate = sdfSql.parse(endString);
+			java.sql.Date end = new java.sql.Date(endDate.getTime());
+			
+			calendar.add(Calendar.MONTH, -1);
 			String startString = sdf.format(calendar.getTime()) + " 00:00:00";
 			Date startDate = sdfSql.parse(startString);
 			java.sql.Date start = new java.sql.Date(startDate.getTime());
-			
-			calendar.add(Calendar.MONTH, 1);
-			calendar.add(Calendar.DAY_OF_MONTH, -1);
-			String endString = sdf.format(calendar.getTime()) + " 23:59:59";
-			Date endDate = sdfSql.parse(endString);
-			java.sql.Date end = new java.sql.Date(endDate.getTime());
 			
 			Map<Integer, List<OpenDailyBean>> map = new HashMap<Integer, List<OpenDailyBean>>();
 			List<TOpenSeller> openSellerList = openSellerManager.findAllOpenSellerList(Constants.USER_TYPE.ALL.getValue());
