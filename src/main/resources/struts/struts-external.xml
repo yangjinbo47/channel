@@ -42,10 +42,21 @@
 		<action name="woPlusOpen_*" method="{1}" class="com.tenfen.www.action.external.open.woplus.WoPlusOpenAction"></action>
 		<!-- wo+融合支付 -->
 		<action name="woPlusMix_*" method="{1}" class="com.tenfen.www.action.external.open.woplus.WoPlusMixAction"></action>
+		<!-- 联通小额支付 -->
+		<action name="smallpay_*" method="{1}" class="com.tenfen.www.action.external.open.unicom.SmallpayAction">
+		    <result name="smallpayfail">/jsp/smallpay/fail.jsp</result>
+		    <result name="smallpayinput">/jsp/smallpay/input.jsp</result>
+		    <result name="smallpaycodeinput">/jsp/smallpay/codeinput.jsp</result>
+		</action>
 		<!-- 翼信能力开放 -->
 		<action name="yiXinOpen_*" method="{1}" class="com.tenfen.www.action.external.open.yixin.YiXinOpenAction"></action>
 		<!-- 移动动漫 -->
-		<action name="cmccDm_*" method="{1}" class="com.tenfen.www.action.external.open.cmccdm.CmccDmAction"></action>
+		<action name="cmccDm_*" method="{1}" class="com.tenfen.www.action.external.open.cmcc.CmccDmAction"></action>
+		<!-- 移动MM网页计费 -->
+		<action name="cmccWABP_*" method="{1}" class="com.tenfen.www.action.external.open.cmcc.CmccWABPAction">
+		    <result name="mmfail">/jsp/mm/fail.jsp</result>
+		    <result name="mminput">/jsp/mm/input.jsp</result>
+		</action>
 		
 		<!-- 第三方支付 -->
 		<!-- 微信支付 -->
