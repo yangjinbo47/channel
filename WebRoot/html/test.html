@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+
+<title>待支付</title>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0,user-scalable=no" />
+<script src="jquery.js"></script>
+<script src="global.js"></script>
+<script src="jquery-util.js"></script>
+<script language="javascript">
+	$J(document).ready(function() {
+		dump();
+	});
+	
+	function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        if (r != null) return unescape(r[2]); return null; //返回参数值
+    }
+	
+	function dump() {
+		var url = window.location.href;
+		var enurl = encodeURIComponent(url);
+		console.log(enurl);
+		//url = http://localhost:8080/channel/html/test.html#/recharge
+		//window.location.href="https://pay.gomzone.com/pay/?prod=2&redirect_uri="+enurl+"#/pay"
+		window.location.href="http://localhost/?productid=2&redirect_uri="+enurl+"#/pay"
+	}
+</script>
+
+</head>
+<body>
+<div>aa</div>
+</body>
+</html>
