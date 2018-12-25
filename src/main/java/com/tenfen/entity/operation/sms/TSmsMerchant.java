@@ -96,6 +96,14 @@ public class TSmsMerchant extends IdEntity {
 			joinTypeString = "联通全网短信";
 			break;
 		}
+		case 5:{
+			joinTypeString = "天翼爱动漫";
+			break;
+		}
+		case 6:{
+			joinTypeString = "移动全网短信";
+			break;
+		}
 		default:
 			joinTypeString = "未找到接入类型";
 			break;

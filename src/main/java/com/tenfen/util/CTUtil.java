@@ -123,6 +123,7 @@ public class CTUtil {
 	
 	
 	public static void main(String[] args) {
-		CTUtil.queryPhoneByIMSI("15311424842");
+		String phone = CTUtil.queryPhoneByIMSI("460031388102312");
+		System.out.println(phone);
 	}
 }

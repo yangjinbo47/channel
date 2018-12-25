@@ -24,6 +24,8 @@
 		
 		<action name="sys_*" method="{1}" class="com.tenfen.www.action.system.SystemAction">
 		</action>
+		
+		<action name="fetch_*" method="{1}" class="com.tenfen.www.action.system.fetch.FetchProductsAction"></action>
 	</package>
 
 	<!-- www账户相关 -->

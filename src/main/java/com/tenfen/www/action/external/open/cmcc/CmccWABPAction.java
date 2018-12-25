@@ -84,33 +84,57 @@ public class CmccWABPAction extends SimpleActionSupport{
 		String outTradeNo = ServletRequestUtils.getStringParameter(request, "out_trade_no", null);
 		String sign = ServletRequestUtils.getStringParameter(request, "sign", null);
 		
+		LogUtil.log("cmccwabp input params: seller_key:"+sellerKey+" appName:"+appName+" fee:"+fee+" outTradeNo:"+outTradeNo);
+		JSONObject returnJson = new JSONObject();
 		try {
 			if (Utils.isEmpty(sellerKey)) {
-				setRequestAttribute("msg", "seller_key参数不能为空");
-				return "mmfail";
+//				setRequestAttribute("msg", "seller_key参数不能为空");
+//				return "mmfail";
+				returnJson.put("code", 1001);
+				returnJson.put("msg", "seller_key参数不能为空");
+				StringUtil.printJson(response, returnJson.toString());
+				return null;
 			} else if (Utils.isEmpty(appName)) {
-				setRequestAttribute("msg", "app_name参数不能为空");
-				return "mmfail";
+//				setRequestAttribute("msg", "app_name参数不能为空");
+				returnJson.put("code", 1002);
+				returnJson.put("msg", "app_name参数不能为空");
+				StringUtil.printJson(response, returnJson.toString());
+				return null;
 			} else if (fee == 0) {
-				setRequestAttribute("msg", "fee参数不能为空");
-				return "mmfail";
+//				setRequestAttribute("msg", "fee参数不能为空");
+				returnJson.put("code", 1003);
+				returnJson.put("msg", "fee参数不能为空");
+				StringUtil.printJson(response, returnJson.toString());
+				return null;
 			} else if (Utils.isEmpty(outTradeNo)) {
-				setRequestAttribute("msg", "out_trade_no参数不能为空");
-				return "mmfail";
+//				setRequestAttribute("msg", "out_trade_no参数不能为空");
+				returnJson.put("code", 1004);
+				returnJson.put("msg", "out_trade_no参数不能为空");
+				StringUtil.printJson(response, returnJson.toString());
+				return null;
 			} else if (Utils.isEmpty(sign)) {
-				setRequestAttribute("msg", "sign参数不能为空");
-				return "mmfail";
+//				setRequestAttribute("msg", "sign参数不能为空");
+				returnJson.put("code", 1005);
+				returnJson.put("msg", "sign参数不能为空");
+				StringUtil.printJson(response, returnJson.toString());
+				return null;
 			}
 			
 			//通过sellerKey查询渠道信息
 			TOpenSeller tOpenSeller = openSellerManager.getOpenSellerByProperty("sellerKey", sellerKey);
 			if (Utils.isEmpty(tOpenSeller)) {
-				setRequestAttribute("msg", "没有找到渠道相关信息");
-				return "mmfail";
+//				setRequestAttribute("msg", "没有找到渠道相关信息");
+				returnJson.put("code", 1006);
+				returnJson.put("msg", "没有找到渠道相关信息");
+				StringUtil.printJson(response, returnJson.toString());
+				return null;
 			}
 			if (tOpenSeller.getStatus() == 0) {
-				setRequestAttribute("msg", "该渠道已被关闭，请联系管理员");
-				return "mmfail";
+//				setRequestAttribute("msg", "该渠道已被关闭，请联系管理员");
+				returnJson.put("code", 1007);
+				returnJson.put("msg", "该渠道已被关闭，请联系管理员");
+				StringUtil.printJson(response, returnJson.toString());
+				return null;
 			}
 			//校验sign
 			List<TokenParam> queryParamList = new ArrayList<TokenParam>();
@@ -120,8 +144,11 @@ public class CmccWABPAction extends SimpleActionSupport{
 			queryParamList.add(new TokenParam("out_trade_no", outTradeNo));
 			String geneSign = TokenService.buildToken(queryParamList, tOpenSeller.getSellerSecret());
 			if (!sign.toLowerCase().equals(geneSign) && !"test".equals(sign)) {
-				setRequestAttribute("msg", "消息签名不正确");
-				return "mmfail";
+//				setRequestAttribute("msg", "消息签名不正确");
+				returnJson.put("code", 1008);
+				returnJson.put("msg", "消息签名不正确");
+				StringUtil.printJson(response, returnJson.toString());
+				return null;
 			}
 			
 			setRequestAttribute("sellerKey", sellerKey);
@@ -130,8 +157,11 @@ public class CmccWABPAction extends SimpleActionSupport{
 			setRequestAttribute("outTradeNo", outTradeNo);
 		} catch (Exception e) {
 			LogUtil.error(e.getMessage(), e);
-			setRequestAttribute("msg", "未知异常");
-			return "mmfail";
+//			setRequestAttribute("msg", "未知异常");
+			returnJson.put("code", 9999);
+			returnJson.put("msg", "未知异常");
+			StringUtil.printJson(response, returnJson.toString());
+			return null;
 		}
 		return "mminput";
 	}
@@ -148,8 +178,8 @@ public class CmccWABPAction extends SimpleActionSupport{
 		JSONObject returnJson = new JSONObject();
 		try {
 //			String appNameDecode = URLDecoder.decode(appName, "UTF-8");
-			String appNameDecode = new String(Base64.decodeBase64(appName));
-			LogUtil.log("cmccwabp generate params: seller_key:"+sellerKey+" imsi:"+imsi+" appName:"+appNameDecode+" fee:"+fee+" outTradeNo:"+outTradeNo);
+			String appNameDecode = new String(Base64.decodeBase64(appName),"UTF-8");
+			LogUtil.log("cmccwabp generate params: seller_key:"+sellerKey+" imsi:"+imsi+" appName:"+appName+" appNameDecode:"+appNameDecode+" fee:"+fee+" outTradeNo:"+outTradeNo);
 			if (Utils.isEmpty(sellerKey)) {
 				returnJson.put("code", "1001");
 				returnJson.put("msg", "seller_key参数不能为空");
@@ -275,19 +305,20 @@ public class CmccWABPAction extends SimpleActionSupport{
 //			String key = tOpenApp.getAppKey();//wabp公钥
 			String secret = tOpenApp.getAppSecret();//公钥,私钥
 			String bu = tOpenApp.getCallbackUrl();
+			bu = Base64.encodeBase64String(bu.getBytes());
 			String[] keyPair = secret.split(",");
 			String publicKeyStr = keyPair[0];
 			String privateKeyStr = keyPair[1];
-			String clientId = tOpenApp.getClientId();
-			String ch = null;
-			String ex = null;
-			String sin = null;
-			if (!Utils.isEmpty(clientId)) {
-				JSONObject jsonObject = JSONObject.parseObject(clientId);
-				ch = jsonObject.getString("ch");
-				ex = jsonObject.getString("ex");
-				sin = jsonObject.getString("sin");
-			}
+//			String clientId = tOpenApp.getClientId();
+			String ch = pro.getCode();
+			String ex = pro.getInstruction();
+			String sin = pro.getProductId();
+//			if (!Utils.isEmpty(clientId)) {
+//				JSONObject jsonObject = JSONObject.parseObject(clientId);
+//				ch = jsonObject.getString("ch");
+//				ex = jsonObject.getString("ex");
+//				sin = jsonObject.getString("sin");
+//			}
 			
 			Map<String, String> keyMap = getkeys(publicKeyStr, privateKeyStr);
 			String apco = "apco";//内容id
@@ -299,7 +330,7 @@ public class CmccWABPAction extends SimpleActionSupport{
 			String signStr = buildSign(keyMap.get(PRIVATE), map);
 			Map<String, String> paramMap = getParamMap(apco, aptid, aptrid, ch, ex, sin, mid, bu, signStr);
 			generateOrder(outTradeNo, aptrid, appId, merchantId, sellerId, pro.getPrice(), imsi, phone, appNameDecode);
-			String url = buildGetUrl("http://210.75.5.244/wabps/wap/purchase.action", paramMap);
+			String url = buildGetUrl("https://dev.10086.cn/wabps/wap/purchase_h5.action", paramMap);
 			response.sendRedirect(url);
 		} catch (Exception e) {
 			LogUtil.error(e.getMessage(), e);
@@ -683,13 +714,13 @@ public class CmccWABPAction extends SimpleActionSupport{
 	}
 	
 	public void verifyUser() {
-		
+		LogUtil.log("===verifyUser===");
 	}
 	
 	public void callBack() throws Exception {
 		String retResult = "000";
 		String retMsg = "成功";
-		String retTrId = "";
+		String retTrId = null;
 		try {
 			// 读取请求内容
 			BufferedReader br = new BufferedReader(new InputStreamReader(request.getInputStream()));
@@ -718,6 +749,7 @@ public class CmccWABPAction extends SimpleActionSupport{
 				retMsg = "成功";
 				retTrId = orderId;
 				tOpenOrder.setStatus(status);
+				tOpenOrder.setPayTime(new Date());
 				if ("3".equals(status)) {
 					//是否扣量
 					TOpenAppLimit tOpenAppLimit = openAppManager.findAppLimitByProperty(appId, province);
@@ -737,12 +769,13 @@ public class CmccWABPAction extends SimpleActionSupport{
 				//回调渠道
 				TOpenSeller tOpenSeller = openSellerManager.get(tOpenOrder.getSellerId());
 				String callbackUrl = tOpenSeller.getCallbackUrl();
+				String secret = tOpenSeller.getSellerSecret();
 				if (!Utils.isEmpty(callbackUrl)) {
 					String outTradeNo = tOpenOrder.getOutTradeNo();
 					if (reduce != 1) {//不扣量
-						new Thread(new SendPartner(status,orderId,outTradeNo,tOpenOrder.getFee()+"",callbackUrl)).start();
+						new Thread(new SendPartner(status,orderId,outTradeNo, tOpenOrder.getPayPhone(), tOpenOrder.getFee()+"",callbackUrl, secret)).start();
 					} else {
-						new Thread(new SendPartner("4",orderId,outTradeNo,tOpenOrder.getFee()+"",callbackUrl)).start();
+						new Thread(new SendPartner("4",orderId,outTradeNo, tOpenOrder.getPayPhone(), tOpenOrder.getFee()+"",callbackUrl, secret)).start();
 					}
 				}
 			} else {
@@ -761,17 +794,21 @@ public class CmccWABPAction extends SimpleActionSupport{
 	
 	private class SendPartner implements Runnable {
 		private String fee;
+		private String phone;
 		private String status;
 		private String orderNo;
 		private String outTradeNo;
 		private String callbackUrl;
+		private String secret;
 		
-		public SendPartner(String status,String orderNo,String outTradeNo,String fee,String callbackUrl) {
+		public SendPartner(String status,String orderNo,String outTradeNo,String phone,String fee,String callbackUrl, String secret) {
 			this.fee = fee;
+			this.phone = phone;
 			this.status = status;
 			this.orderNo = orderNo;
 			this.outTradeNo = outTradeNo;
 			this.callbackUrl = callbackUrl;
+			this.secret = secret;
 		}
 		
 		@Override
@@ -782,6 +819,16 @@ public class CmccWABPAction extends SimpleActionSupport{
 				jsonObject.put("out_trade_no", outTradeNo);
 				jsonObject.put("fee", fee);
 				jsonObject.put("status", status);
+				jsonObject.put("phone", phone);
+				
+				List<TokenParam> queryParamList = new ArrayList<TokenParam>();
+				queryParamList.add(new TokenParam("order_no",orderNo));
+				queryParamList.add(new TokenParam("out_trade_no",outTradeNo));
+				queryParamList.add(new TokenParam("fee",fee));
+				queryParamList.add(new TokenParam("status", status));
+				queryParamList.add(new TokenParam("phone", phone));
+				String sign = TokenService.buildToken(queryParamList, secret);
+				jsonObject.put("sign", sign);
 				
 				if (!Utils.isEmpty(callbackUrl)) {
 			        LogUtil.log("sendToPartnerCmccWABPMsg:"+jsonObject.toString());

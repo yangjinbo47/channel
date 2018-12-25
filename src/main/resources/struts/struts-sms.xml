@@ -32,6 +32,12 @@
 		
 		<!-- 联通宽带 -->
 		<action name="unicomBroadBand_*" method="{1}" class="com.tenfen.www.action.external.sms.unicombroadband.UnicomBroadBandAction"></action>
+		
+		<!-- 天翼爱动漫 -->
+		<action name="tyidmsms_*" method="{1}" class="com.tenfen.www.action.external.sms.tyidm.TyIdmSmsAction"></action>
+		
+		<!-- 移动全网短信 -->
+		<action name="cmccSms_*" method="{1}" class="com.tenfen.www.action.external.sms.cmccsms.CmccSmsAction"></action>
 	</package>
 
 </struts>

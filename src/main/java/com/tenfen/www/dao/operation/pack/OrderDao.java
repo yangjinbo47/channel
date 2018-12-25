@@ -247,4 +247,19 @@ public class OrderDao extends CustomHibernateDao<TOrder, Long>{
 		}
 		return list;
 	}
+	
+	public List<TOrder> findByImsiAndPushId(String imsi, Integer pushId) {
+		List<TOrder> list = null;
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("imsi", imsi);
+			map.put("pushId", pushId);
+			
+			String hql = "select t from TOrder t where t.imsi=:imsi and t.pushId=:pushId order by t.id desc";
+			list = find(hql, map);
+		} catch (Exception e) {
+			LogUtil.error(e.getMessage(), e);
+		}
+		return list;
+	}
 }

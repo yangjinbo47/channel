@@ -65,7 +65,7 @@ public class OpenOrderAction extends SimpleActionSupport {
 		Integer sellerId = ServletRequestUtils.getIntParameter(request, "sellerId", -1);
 		String startTime = ServletRequestUtils.getStringParameter(request, "startTime", null);
 		String endTime = ServletRequestUtils.getStringParameter(request, "endTime", null);
-		String payPhone = ServletRequestUtils.getStringParameter(request, "payPhone", null);
+//		String payPhone = ServletRequestUtils.getStringParameter(request, "payPhone", null);
 		
 		try {
 			if (startTime != null && endTime != null) {

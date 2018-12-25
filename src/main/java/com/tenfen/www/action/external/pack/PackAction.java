@@ -324,20 +324,23 @@ public class PackAction extends SimpleActionSupport {
 			String province = null;
 			
 			//从本地库中获取
-			ImsiMdnRelation imsiMdnRelation = imsiMdnRelationManager.getEntityByProperty("imsi", imsi);
-			if (imsiMdnRelation != null) {
-				phone = imsiMdnRelation.getPhoneNum();
-			}
-			//从接口获取号码
-			if (phone == null || phone.length() == 0) {
-				phone = CTUtil.queryPhoneByIMSI(imsi);
-				if (!Utils.isEmpty(phone)) {
-					imsiMdnRelation = new ImsiMdnRelation();
-					imsiMdnRelation.setImsi(imsi);
-					imsiMdnRelation.setPhoneNum(phone);
-					imsiMdnRelationManager.save(imsiMdnRelation);
+			if (Utils.isEmpty(phone)) {
+				ImsiMdnRelation imsiMdnRelation = imsiMdnRelationManager.getEntityByProperty("imsi", imsi);
+				if (imsiMdnRelation != null) {
+					phone = imsiMdnRelation.getPhoneNum();
+				}
+				//从接口获取号码
+				if (Utils.isEmpty(phone)) {
+					phone = CTUtil.queryPhoneByIMSI(imsi);
+					if (!Utils.isEmpty(phone)) {
+						imsiMdnRelation = new ImsiMdnRelation();
+						imsiMdnRelation.setImsi(imsi);
+						imsiMdnRelation.setPhoneNum(phone);
+						imsiMdnRelationManager.save(imsiMdnRelation);
+					}
 				}
 			}
+			
 			if (!Utils.isEmpty(phone)) {
 				province = tyu.searchAreaByPhone(phone);
 			}
@@ -639,39 +642,43 @@ public class PackAction extends SimpleActionSupport {
 		
 		//从本地库中获取
 		String phone = null;
-		ImsiMdnRelation imsiMdnRelation = imsiMdnRelationManager.getEntityByProperty("imsi", imsi);
-		if (imsiMdnRelation != null) {
-			phone = imsiMdnRelation.getPhoneNum();
-		}
-		//从接口获取号码
-		if (phone == null || phone.length() == 0) {
-			phone = CTUtil.queryPhoneByIMSI(imsi);
-			if (!Utils.isEmpty(phone)) {
-				imsiMdnRelation = new ImsiMdnRelation();
-				imsiMdnRelation.setImsi(imsi);
-				imsiMdnRelation.setPhoneNum(phone);
-				imsiMdnRelationManager.save(imsiMdnRelation);
-			}
-		}
-		
-		if (Utils.isEmpty(phone)) {
-			code = "1004";
-			msg = "电话号码反查失败";
-		}
+//		ImsiMdnRelation imsiMdnRelation = imsiMdnRelationManager.getEntityByProperty("imsi", imsi);
+//		if (imsiMdnRelation != null) {
+//			phone = imsiMdnRelation.getPhoneNum();
+//		}
+//		//从接口获取号码
+//		if (phone == null || phone.length() == 0) {
+//			phone = CTUtil.queryPhoneByIMSI(imsi);
+//			if (!Utils.isEmpty(phone)) {
+//				imsiMdnRelation = new ImsiMdnRelation();
+//				imsiMdnRelation.setImsi(imsi);
+//				imsiMdnRelation.setPhoneNum(phone);
+//				imsiMdnRelationManager.save(imsiMdnRelation);
+//			}
+//		}
+//		
+//		if (Utils.isEmpty(phone)) {
+//			code = "1004";
+//			msg = "电话号码反查失败";
+//		}
 		if (!Utils.isEmpty(code)) {
 			json.put("code", code);
 			json.put("msg", msg);
 			StringUtil.printJson(response, json.toString());
+			LogUtil.log("tyread pay res:"+json.toString());
 			return;
 		}
 		
 		try {
 			//查看订单状态
-			TOrder order = orderManager.findByPhoneAndPushId(phone, pushId);
+//			TOrder order = orderManager.findByPhoneAndPushId(phone, pushId);
+			TOrder order = orderManager.findByImsiAndPushId(imsi, pushId);
+			phone = order.getPhoneNum();
 			if (Utils.isEmpty(order)) {
 				json.put("code", "1005");
 				json.put("msg", "没有查询到订单信息");
 				StringUtil.printJson(response, json.toString());
+				LogUtil.log("tyread pay res:"+json.toString());
 				return;
 			}
 			
@@ -739,7 +746,7 @@ public class PackAction extends SimpleActionSupport {
 				json.put("out_trade_no", outTradeNo);
 				StringUtil.printJson(response, json.toString());
 			}
-			LogUtil.log("packagePay result:"+json.toJSONString());
+			LogUtil.log("tyread pay result:"+json.toString());
 		} catch (Exception e) {
 			LogUtil.error(e.getMessage(), e);
 		}
@@ -1226,7 +1233,7 @@ public class PackAction extends SimpleActionSupport {
 			if (!Utils.isEmpty(culverinResponse)) {
 				isSucc = Boolean.parseBoolean(StringUtils.substringBetween(culverinResponse.getResponseBody(), "<isSuccess>", "</isSuccess>"));
 				String resultCode = StringUtils.substringBetween(culverinResponse.getResponseBody(), "<resultCode>", "</resultCode>");
-				LogUtil.log("packName:"+name+",indentifyCode:"+code+",isSuccess:"+isSucc+",resultCode="+resultCode);
+				LogUtil.log("tradeId:"+tradeId+",packName:"+name+",indentifyCode:"+code+",isSuccess:"+isSucc+",resultCode="+resultCode);
 			}
 		} catch (Exception e) {
 			LogUtil.log(e.getMessage(), e);

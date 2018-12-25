@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author Lordz
+ * @author BoBo
  * @Date Jun 23, 2009
  */
 public class RegExp {

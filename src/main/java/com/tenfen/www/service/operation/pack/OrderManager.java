@@ -184,7 +184,16 @@ public class OrderManager {
 		List<TOrder> list = orderDao.findByPhoneAndPushId(phone, pushId);
 		TOrder entity = null;
 		if (list.size() > 0) {
-			entity = list.get(0);
+			entity = list.get(list.size() - 1);
+		}
+		return entity;
+	}
+	
+	public TOrder findByImsiAndPushId(String imsi, Integer pushId){
+		List<TOrder> list = orderDao.findByImsiAndPushId(imsi, pushId);
+		TOrder entity = null;
+		if (list.size() > 0) {
+			entity = list.get(list.size() - 1);
 		}
 		return entity;
 	}
