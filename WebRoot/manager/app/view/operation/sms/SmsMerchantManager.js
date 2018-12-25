@@ -72,7 +72,9 @@ Ext.define('CMS.view.operation.sms.SmsMerchantManager', {
 			        {"id":1, "name":"信元短代"},
 			        {"id":2, "name":"爱音乐短代"},
 			        {"id":3, "name":"联通在信"},
-			        {"id":4, "name":"联通全网短信"}
+			        {"id":4, "name":"联通全网短信"},
+			        {"id":5, "name":"天翼爱动漫"},
+			        {"id":6, "name":"移动全网短信"}
 			    ]
 			}),
 	    	displayField : 'name',
@@ -91,6 +93,10 @@ Ext.define('CMS.view.operation.sms.SmsMerchantManager', {
 				return '联通在信';
 			} else if(value == '4'){
 				return '联通全网短信';
+			} else if(value == '5'){
+				return '天翼爱动漫';
+			} else if(value == '6'){
+				return '移动全网短信';
 			}
 		}
 	}],

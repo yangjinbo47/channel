@@ -19,12 +19,12 @@
 <div><img src="./jsp/smallpay/unicom.png"></div>
 <div style="margin-top:20px;">
 <form action="./external/smallpay_generateOrder.action">
-<p>请输入付费手机号：<input type="text" name="phone" style="border-width:1px;height:20px"/><p>
+<p>输入扣费手机号码：<input type="text" name="phone" style="border-width:1px;height:20px"/><p>
 <s:hidden name="seller_key" value="%{#request.sellerKey}"/>
 <s:hidden name="app_name" value="%{#request.appName}"/>
 <s:hidden name="fee" value="%{#request.fee}"/>
 <s:hidden name="out_trade_no" value="%{#request.outTradeNo}"/>
-<p style="text-align:center;"><input type="submit" text="提交"/></p>
+<p style="text-align:center;"><input type="submit" value="获取验证码"/></p>
 </form>
 </div>
 </body>

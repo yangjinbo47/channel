@@ -19,10 +19,10 @@
 <div><img src="./jsp/smallpay/unicom.png"></div>
 <div style="margin-top:20px;">
 <form action="./external/smallpay_pay.action">
-<p>请输入收到的验证码：<input type="text" name="code" style="border-width:1px;height:20px"/><p>
+<p>请输入运营商下发给您的验证码，并确认本次支付<s:property value="%{#request.fee/100}"/>元：<input type="text" name="code" style="border-width:1px;height:20px"/><p>
 <s:hidden name="trans_seq" value="%{#request.transSeq}"/>
 <s:hidden name="order_id" value="%{#request.orderId}"/>
-<p style="text-align:center;"><input type="submit" text="提交"/></p>
+<p style="text-align:center;"><input type="submit" value="确认支付"/>&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" onclick="javascript:history.back(-1);" value="取消"/></p>
 </form>
 </div>
 </body>
